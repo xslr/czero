@@ -11,8 +11,8 @@ module.exports = {
       let result = {};
       let status = 201;
       if (!err) {
-        const { name, password } = req.body;
-        const user = new User({ name, password }); // document = instance of a model
+        const { first_name, password } = req.body;
+        const user = new User({ first_name, password }); // document = instance of a model
         // TODO: We can hash the password here before we insert instead of in the model
         user.save((err, user) => {
           if (!err) {
@@ -83,5 +83,31 @@ module.exports = {
         res.status(status).send(result);
       }
     });
-  }
+  },
+
+  getAll: (req, res) => {
+    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
+      if (!err) {
+        User.find({}, (err, users) => {
+          if (!err) {
+            res.send(users);
+          } else {
+            console.log('Error', err);
+          }
+        });
+      } else {
+        let result = {}
+        result.status = 500
+        result.error = 'Database connection error'
+        res.status(result.status).send(result)
+      }
+    });
+  },
+
+  update: (req, res) => {
+  },
+
+  deactivate: (req, res) => {},
+
+  requestReset: (req, res) => {},
 }

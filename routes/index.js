@@ -1,7 +1,7 @@
 const defaultRoute = require('../controllers/default')
 const users = require('./users');
 
-module.exports = (router) => {  
+module.exports = (router) => {
   router.route('/')
     .get(defaultRoute.default)
 

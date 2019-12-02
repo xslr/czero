@@ -1,3 +1,4 @@
+const { Pool } = require('pg')
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -8,16 +9,60 @@ const stage = require('../config')[environment];
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-  name: {
+  // login
+  email: {
     type: 'String',
     required: true,
     trim: true,
-    unique: true
+    unique: true,
   },
-  password: {
+  password_hash: {
     type: 'String',
     required: true,
-    trim: true
+    trim: true,
+  },
+  // contact information
+  first_name: {
+    type: 'String',
+    required: false,
+    trim: true,
+    unique: false,
+  },
+  last_name: {
+    type: 'String',
+    required: false,
+    trim: true,
+    unique: false,
+  },
+  salutation: {
+    type: 'String',
+    required: false,
+    trim: true,
+    unique: false,
+  },
+  phone_number1: {
+    type: 'String',
+    required: false,
+    trim: true,
+    unique: false,
+  },
+  phone_number2: {
+    type: 'String',
+    required: false,
+    trim: true,
+    unique: false,
+  },
+  mailing_address: {
+    type: 'String',
+    required: false,
+    trim: true,
+    unique: false,
+  },
+  active: {
+    type: 'Bool',
+    required: false,
+    unique: false,
+    default: true,
   }
 });
 

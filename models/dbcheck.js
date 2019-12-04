@@ -1,3 +1,4 @@
+const schema = require('./schema')
 const Pool = require('pg').Pool
 const pool = new Pool({
   host: 'localhost',
@@ -6,6 +7,7 @@ const pool = new Pool({
   database: 'noodles',
   port: 5432,
 })
+
 
 async function verifyConnection() {
   try {
@@ -18,6 +20,7 @@ async function verifyConnection() {
 
   return true
 }
+
 
 function tableHasColumn(client, tableName, columnName) {
   const queryString = 'SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name=$1 AND column_name=$2'
@@ -33,6 +36,7 @@ function tableHasColumn(client, tableName, columnName) {
     })
 }
 
+
 async function hasTable(client, table) {
   const queryString = 'SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE table_name=$1'
   const queryValues = [table.name]
@@ -40,7 +44,7 @@ async function hasTable(client, table) {
   try {
     const result = await client.query(queryString, queryValues)
     if (0 === result.rowCount) {
-      console.error(`Table '${table.name}' is not present. Query = ${queryString}`)
+      console.error(`  Table '${table.name}' is not present.\n    Q=${queryString}\n    V=${queryValues}`)
       return false
     } else {
       // table is present. now ensure that the columns are also present
@@ -56,77 +60,41 @@ async function hasTable(client, table) {
   }
 }
 
-async function verifyTables() {
-  const expectedTables = [
-    {
-      name: 'tbl_operator',
-      columns: [
-        'user_id',  // foreign key on tblUser.id
-      ],
-    },
-    {
-      name: 'tbl_user',
-      columns: [
-        'id',
-        'first_name',
-        'middle_name',
-        'last_name',
-        'email',
-        'phone_number',
-        'address_line1',
-        'address_line2',
-        'address_line3',
-      ],
-    },
-    {
-      name: 'tbl_conference',
-      columns: [
-        'id',
-        'name',
-        'start_date',
-        'end_date',
-        'venue_line1',
-        'venue_line2',
-        'venue_line3',
-      ],
-    },
-    {
-      name: 'tbl_conference_member',
-      columns: [
-        'user_id',
-        'conference_id',
-      ]
-    },
-  ];
 
-  let tableOk = true
+async function verifyTables() {
+  const expectedTables = schema.tables
 
   const client = await pool.connect();
   
   console.log('Checking tables')
-  const tablesOk = await Promise.all(expectedTables.map((table) => {
+  const tablesOk = await Promise.all(expectedTables.map(async (table) => {
+    const tableOk = await hasTable(client, table)
     process.stdout.write(`  ${table.name}:`)
-    process.stdout.write(tableOk ? ' ok\n' : ' NOK\n')
-    return hasTable(client, table)
+    process.stdout.write(tableOk ? ' ok\n'
+                                 : ` NOK table\n`)
+    return tableOk
   }))
   // console.log(tablesOk)
   const allTablesOk = tablesOk.reduce((acc, isTableOk) => acc && isTableOk, true)
 
   client.release()
-  return allTablesOk;
+  return allTablesOk
 }
+
 
 async function verifyDb() {
   console.log('Checking database')
 
-  process.stdout.write('  connection', )
+  process.stdout.write('  connection: ', )
     const connectionOk = await verifyConnection()
-    process.stdout.write(connectionOk ? ': ok\n' : 'NOT OK: Connection\n')
+    process.stdout.write(connectionOk ? 'ok\n'
+                                      : `NOK Connection\n`)
 
   const tablesOk = await verifyTables()
 
-  return connectionOk && tablesOk;
+  return connectionOk && tablesOk
 }
+
 
 module.exports = {
   verifyDb

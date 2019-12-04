@@ -1,40 +1,74 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const User = require('../models/users');
+const schema = require('../models/schema')
+const validator = require('validator')
 
-const connUri = process.env.MONGO_LOCAL_CONN_URL;
+const Pool = require('pg').Pool
+const pool = new Pool({
+  host: 'localhost',
+  user: 'capn_noodles',
+  password: 'capn_noodles',
+  database: 'noodles',
+  port: 5432,
+})
+
+
+function isAddUserRequestValid(fields) {
+  let isValid = true
+
+  isValid &= validator.isEmail(fields.email)
+
+  return isValid
+}
+
+
+async function addUser(req, res) {
+  const body = req.body
+  
+  const query = 'INSERT INTO tbl_user (\
+    first_name, middle_name, last_name, email, phone_number,\
+    address_line1, address_line2, address_line3)\
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8);'
+  const queryVals = [
+    body.first_name,
+    body.middle_name,
+    body.last_name,
+    body.email,
+    body.phone_number,
+    body.address_line1,
+    body.address_line2,
+    body.address_line3
+  ]
+
+  status = 201
+  result = ''
+
+  if (isAddUserRequestValid(req.body))
+  {
+    try {
+      result = await pool.query(query, queryVals);
+      console.log(`rowcount=${result.rowCount}`)
+      console.log(`result=${result}`)
+    } catch (err) {
+      console.error(err)
+    }  
+  } else {
+    status = 400  // invalid request
+    result = {
+      reason: 'One of the user data fields is invalid',
+      original_request: JSON.stringify(req.body),
+    }
+  }
+
+  res.status(status).send(result)
+}
+
 
 module.exports = {
-  add: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser : true }, (err) => {
-      let result = {};
-      let status = 201;
-      if (!err) {
-        const { first_name, password } = req.body;
-        const user = new User({ first_name, password }); // document = instance of a model
-        // TODO: We can hash the password here before we insert instead of in the model
-        user.save((err, user) => {
-          if (!err) {
-            result.status = status;
-            result.result = user;
-          } else {
-            status = 500;
-            result.status = status;
-            result.error = err;
-          }
-          res.status(status).send(result);
-        });
-      } else {
-        status = 500;
-        result.status = status;
-        result.error = err;
-        res.status(status).send(result);
-      }
-    });
-  },
-
+  addUser,
   login: (req, res) => {
+    /*
     const { name, password } = req.body;
 
     mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
@@ -83,9 +117,11 @@ module.exports = {
         res.status(status).send(result);
       }
     });
+    */
   },
 
   getAll: (req, res) => {
+    /*
     mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
       if (!err) {
         User.find({}, (err, users) => {
@@ -102,6 +138,7 @@ module.exports = {
         res.status(result.status).send(result)
       }
     });
+    */
   },
 
   update: (req, res) => {
@@ -110,4 +147,6 @@ module.exports = {
   deactivate: (req, res) => {},
 
   requestReset: (req, res) => {},
+
+  setNewPassword: (req, res) => {},
 }

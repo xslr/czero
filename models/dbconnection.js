@@ -11,8 +11,8 @@ const connectionParam = {
 
 const Pool = require('pg').Pool
 const pool = new Pool(connectionParam)
-
 const knex = require('knex')(config)
+
 
 module.exports = {
   connectionParam,

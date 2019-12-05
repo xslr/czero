@@ -3,10 +3,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 const schema = require('../models/schema')
 const validator = require('validator')
-const connParam = require('../models/dbconnection')
-const pool = connParam.pool
-const knex = connParam.knex
-const resultCode = require('../result_code')
+const {knex} = require('../models/dbconnection')
+const {ResultCode, HttpStatus, mkResult} = require('../result_code')
+const environment = process.env.NODE_ENV; // development
+const stage = require('../config')[environment];
 
 
 function isAddUserRequestValid(fields) {
@@ -23,23 +23,30 @@ function isAddUserRequestValid(fields) {
 
 
 function onAddUserQuerySuccess(req, rsp, res) {
-  result = res
-  rsp.status(resultCode.HTTP_201_CREATED).send(JSON.stringify(res))
+  result = {}
+  status = HttpStatus.HTTP_201_CREATED
 
-  // console.log(`rowcount=${result.rowCount}`)
-  // console.log(`result=${JSON.stringify(result)}`)
+  if (1 == res.rowCount) {
+    result = mkResult(ResultCode.OK_ACCOUNT_CREATED, 'User account created')
+  } else {
+    result = mkResult(ResultCode.ERR_UNKNOWN, 'Unknown error while creating user account.')
+    result.extra = JSON.stringify(res)
+    status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
+  }
+
+  rsp.status(HttpStatus.HTTP_201_CREATED).send(result)
 }
 
 
 function onAddUserQueryError(req, rsp, err) {
   console.error(`Error executing transaction: ${err}`)
-  let httpStatus = resultCode.HTTP_500_INTERNAL_SERVER_ERROR
+  let httpStatus = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
   let result = err
 
   if (23505 === Number(err.code)) {
-    httpStatus = resultCode.HTTP_422_UNPROCESSABLE_ENTITY
+    httpStatus = HttpStatus.HTTP_422_UNPROCESSABLE_ENTITY
     result = {
-      code: resultCode.ERR_ACCOUNT_EXISTS,
+      resultCode: ResultCode.ERR_ACCOUNT_EXISTS,
       reason: 'User account was not created because specified email is already registered.',
     }
   }
@@ -49,6 +56,7 @@ function onAddUserQueryError(req, rsp, err) {
 
 async function addUser(req, rsp) {
   if (isAddUserRequestValid(req.body)) {
+    const hashedPassword = bcrypt.hashSync(req.body.password, stage.saltingRounds)
     knex.transaction(trx => {
       return trx
         .insert({
@@ -62,7 +70,7 @@ async function addUser(req, rsp) {
           // console.log(`--> id is ${id}:${typeof id}:${id.toString()}`)
           return trx.insert({
             email: req.body.email,
-            pwHash: req.body.password,
+            pwHash: hashedPassword,
             userId: id[0],
           })
           .into('tblEmailLogin')
@@ -79,7 +87,7 @@ async function addUser(req, rsp) {
     .then(result => onAddUserQuerySuccess(req, rsp, result))
     .catch(err => onAddUserQueryError(req, rsp, err))
   } else {
-    httpStatus = resultCode.HTTP_400_BAD_REQUEST
+    httpStatus = HttpStatus.HTTP_400_BAD_REQUEST
     result = {
       reason: 'One of the user data fields is invalid',
       original_request: JSON.stringify(req.body),
@@ -101,18 +109,15 @@ function getAuthToken(email) {
 
 
 function onLoginQuerySuccess(req, rsp, res) {
-  let httpStatus = resultCode.HTTP_401_UNAUTHORIZED
-  let result = {
-    code: resultCode.ERR_INCORRECT_LOGIN,
-    reason: 'Incorrect credentials',
-  }
+  let httpStatus = HttpStatus.HTTP_401_UNAUTHORIZED
+  let result = mkResult(ResultCode.ERR_INCORRECT_LOGIN, 'Incorrect credentials')
 
   if (Array.isArray(res) && res.length > 0) {
-    httpStatus = resultCode.HTTP_200_OK
-    result = {
-      code: resultCode.OK_LOGIN_SUCCESS,
-      reason: 'Credentials accepted',
-      token: getAuthToken(res[0].email)
+    const compareRes = bcrypt.compareSync(req.body.password, res[0].pwHash)
+    if (compareRes) {
+      httpStatus = HttpStatus.HTTP_200_OK
+      result = mkResult(ResultCode.OK_LOGIN_SUCCESS, 'Credentials accepted')
+      result.token = getAuthToken(res[0].email)
     }
   }
   rsp.status(httpStatus).send(result)
@@ -121,7 +126,7 @@ function onLoginQuerySuccess(req, rsp, res) {
 
 function onLoginQueryError(req, rsp, err) {
   console.log(err)
-  rsp.status(resultCode.HTTP_500_INTERNAL_SERVER_ERROR).send(err)
+  rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(err)
 }
 
 
@@ -129,11 +134,10 @@ async function login(req, rsp) {
   const { email, password } = req.body
 
   return knex('tblEmailLogin')
-    .select('email', 'userId')
+    .select('email', 'pwHash', 'userId')
     .from('tblEmailLogin')
     .where({
-      email: email,
-      pwHash: password,
+      email: email
     })
     .then(res => onLoginQuerySuccess(req, rsp, res))
     .catch(err => onLoginQueryError(req, rsp, err))
@@ -144,33 +148,15 @@ module.exports = {
   addUser,
   login,
 
-  getAll: (req, res) => {
-    /*
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      if (!err) {
-        User.find({}, (err, users) => {
-          if (!err) {
-            res.send(users);
-          } else {
-            console.log('Error', err);
-          }
-        });
-      } else {
-        let result = {}
-        result.status = 500
-        result.error = 'Database connection error'
-        res.status(result.status).send(result)
-      }
-    });
-    */
+  getAll: (req, rsp) => {
   },
 
-  update: (req, res) => {
+  update: (req, rsp) => {
   },
 
-  deactivate: (req, res) => {},
+  deactivate: (req, rsp) => {},
 
-  requestReset: (req, res) => {},
+  requestReset: (req, rsp) => {},
 
-  setNewPassword: (req, res) => {},
+  setNewPassword: (req, rsp) => {},
 }

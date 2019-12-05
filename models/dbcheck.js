@@ -1,7 +1,5 @@
 const schema = require('./schema')
-const conn = require('./dbconnection')
-const pool = conn.pool
-const knex = conn.knex
+const { pool } = require('./dbconnection')
 
 
 async function verifyConnection() {

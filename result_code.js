@@ -4,6 +4,8 @@ const ResultCode = Object.freeze({
   'OK_LOGIN_SUCCESS': 3,
   'ERR_INCORRECT_LOGIN': 4,
   'OK_ACCOUNT_CREATED': 5,
+  'ERR_UNKNOWN_USER_ID': 6,
+  'ERR_UNKNOWN_USER_EMAIL': 7,
 })
 
 const HttpStatus = Object.freeze({
@@ -14,6 +16,7 @@ const HttpStatus = Object.freeze({
   // http 4xx
   'HTTP_400_BAD_REQUEST':400,
   'HTTP_401_UNAUTHORIZED':401,
+  'HTTP_404_NOT_FOUND':404,
   'HTTP_422_UNPROCESSABLE_ENTITY':422,
 
   // http 5xx

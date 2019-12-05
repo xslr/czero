@@ -1,10 +1,9 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
-const schema = require('../models/schema')
 const validator = require('validator')
-const {knex} = require('../models/dbconnection')
-const {ResultCode, HttpStatus, mkResult} = require('../result_code')
+const { knex } = require('../models/dbconnection')
+const { ResultCode, HttpStatus, mkResult } = require('../result_code')
 const environment = process.env.NODE_ENV; // development
 const stage = require('../config')[environment];
 
@@ -54,7 +53,7 @@ function onAddUserQueryError(req, rsp, err) {
 }
 
 
-async function addUser(req, rsp) {
+async function add(req, rsp) {
   if (isAddUserRequestValid(req.body)) {
     const hashedPassword = bcrypt.hashSync(req.body.password, stage.saltingRounds)
     knex.transaction(trx => {
@@ -117,7 +116,7 @@ function onLoginQuerySuccess(req, rsp, res) {
     if (compareRes) {
       httpStatus = HttpStatus.HTTP_200_OK
       result = mkResult(ResultCode.OK_LOGIN_SUCCESS, 'Credentials accepted')
-      result.token = getAuthToken(res[0].email)
+      result.authToken = getAuthToken(res[0].email)
     }
   }
   rsp.status(httpStatus).send(result)
@@ -131,32 +130,86 @@ function onLoginQueryError(req, rsp, err) {
 
 
 async function login(req, rsp) {
-  const { email, password } = req.body
+  const { email } = req.body
 
   return knex('tblEmailLogin')
     .select('email', 'pwHash', 'userId')
-    .from('tblEmailLogin')
     .where({
-      email: email
+      email: email,
     })
     .then(res => onLoginQuerySuccess(req, rsp, res))
     .catch(err => onLoginQueryError(req, rsp, err))
 }
 
 
+async function getUserById(req, rsp) {
+  console.log(req.params)
+
+  if (!req.params.userId) {
+    rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR)
+       .send(mkResult(ResultCode.ERR_UNKNOWN, '!! userId should never be blank on this route'))
+    return
+  }
+
+  const userId = Number(req.params.userId)
+  let user = await User.getUserById(userId)
+  if (null == user || user.email != req.decodedToken.email) {
+    rsp.status(HttpStatus.HTTP_404_NOT_FOUND)
+       .send(mkResult(ResultCode.ERR_UNKNOWN_USER_ID, 'A user with specified id was not found.'))
+  } else {
+    rsp.status(HttpStatus.HTTP_200_OK)
+       .send(user)
+  }
+}
+
+
+async function getUserByEmail(req, rsp) {
+  console.log(req.body.authToken)
+
+  if (!req.decodedToken) {
+    rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR)
+       .send(mkResult(ResultCode.ERR_UNKNOWN, '!! userId should never be blank on this route'))
+    return
+  }
+
+  const email = req.decodedToken.email
+  let user = await User.getUserByEmail(email)
+  if (null == user) {
+    rsp.status(HttpStatus.HTTP_404_NOT_FOUND)
+       .send(mkResult(ResultCode.ERR_UNKNOWN_USER_EMAIL, 'A user with specified email was not found.'))
+  } else {
+    rsp.status(HttpStatus.HTTP_200_OK)
+       .send(user)
+  }
+}
+
+
+async function update(req, rsp) {}
+
+
+async function deactivate(req, rsp) {}
+
+
+async function startPasswordReset(req, rsp) {}
+
+
+async function performPasswordReset(req, rsp) {}
+
+
+async function resetPassword(req, rsp) {
+  // will either request a password reset token or
+  // reset the password if a valid reset token is already provided
+}
+
+
 module.exports = {
-  addUser,
+  add,
   login,
-
-  getAll: (req, rsp) => {
-  },
-
-  update: (req, rsp) => {
-  },
-
-  deactivate: (req, rsp) => {},
-
-  requestReset: (req, rsp) => {},
-
-  setNewPassword: (req, rsp) => {},
+  getUserById,
+  getUserByEmail,
+  update,
+  deactivate,
+  resetPassword,
+  startPasswordReset,
+  performPasswordReset,
 }

@@ -3,16 +3,16 @@ const validateToken = require('../utils')
 
 module.exports = (router) => {
   router.route('/user')
-    .post(controller.addUser)
-    .get(validateToken.validateToken, controller.getAll);
+    .get(validateToken.validateToken, controller.getUserByEmail)
+    .post(controller.add);
 
   router.route('/user/:userId')
-    .put(validateToken.validateToken, controller.update)
-    .delete(validateToken.validateToken, controller.deactivate);
+    .delete(validateToken.validateToken, controller.deactivate)
+    .get(validateToken.validateToken, controller.getUserById)
+    .put(validateToken.validateToken, controller.update);
 
   router.route('/user/:userId/reset_password')
-    .post(validateToken.validateToken, controller.requestReset)  // initiate a password reset using specified email_address
-    .put(validateToken.validateToken, controller.setNewPassword);
+    .post(validateToken.validateToken, controller.resetPassword);
 
   router.route('/login')
     .post(controller.login)

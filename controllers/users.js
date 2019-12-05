@@ -22,7 +22,7 @@ function isAddUserRequestValid(fields) {
 }
 
 
-function onAddUserSuccess(req, rsp, res) {
+function onAddUserQuerySuccess(req, rsp, res) {
   result = res
   rsp.status(resultCode.HTTP_201_CREATED).send(JSON.stringify(res))
 
@@ -31,26 +31,23 @@ function onAddUserSuccess(req, rsp, res) {
 }
 
 
-function onAddUserError(req, rsp, err) {
+function onAddUserQueryError(req, rsp, err) {
   console.error(`Error executing transaction: ${err}`)
-  let ecode = resultCode.HTTP_500_INTERNAL_SERVER_ERROR
+  let httpStatus = resultCode.HTTP_500_INTERNAL_SERVER_ERROR
   let result = err
 
   if (23505 === Number(err.code)) {
-    ecode = resultCode.HTTP_422_UNPROCESSABLE_ENTITY
+    httpStatus = resultCode.HTTP_422_UNPROCESSABLE_ENTITY
     result = {
-      ecode: resultCode.ERR_ACCOUNT_EXISTS,
+      code: resultCode.ERR_ACCOUNT_EXISTS,
       reason: 'User account was not created because specified email is already registered.',
     }
   }
-  rsp.status(ecode).send(result)
+  rsp.status(httpStatus).send(result)
 }
 
 
 async function addUser(req, rsp) {
-  status = 201
-  result = ''
-
   if (isAddUserRequestValid(req.body)) {
     knex.transaction(trx => {
       return trx
@@ -79,78 +76,73 @@ async function addUser(req, rsp) {
           throw err
         })
     })
-    .then(result => onAddUserSuccess(req, rsp, result))
-    .catch(err => onAddUserError(req, rsp, err))
+    .then(result => onAddUserQuerySuccess(req, rsp, result))
+    .catch(err => onAddUserQueryError(req, rsp, err))
   } else {
-    status = 400  // invalid request
+    httpStatus = resultCode.HTTP_400_BAD_REQUEST
     result = {
       reason: 'One of the user data fields is invalid',
       original_request: JSON.stringify(req.body),
     }
-    rsp.status(status).send(result)
+    rsp.status(httpStatus).send(result)
   }
 }
 
 
-async function login(req, res) {
+function getAuthToken(email) {
+  // Create a token
+  const payload = { email: email }
+  const options = { expiresIn: '2d', issuer: 'https://rnm.sg' }
+  const secret = process.env.JWT_SECRET
+  const token = jwt.sign(payload, secret, options)
 
+  return token
+}
+
+
+function onLoginQuerySuccess(req, rsp, res) {
+  let httpStatus = resultCode.HTTP_401_UNAUTHORIZED
+  let result = {
+    code: resultCode.ERR_INCORRECT_LOGIN,
+    reason: 'Incorrect credentials',
+  }
+
+  if (Array.isArray(res) && res.length > 0) {
+    httpStatus = resultCode.HTTP_200_OK
+    result = {
+      code: resultCode.OK_LOGIN_SUCCESS,
+      reason: 'Credentials accepted',
+      token: getAuthToken(res[0].email)
+    }
+  }
+  rsp.status(httpStatus).send(result)
+}
+
+
+function onLoginQueryError(req, rsp, err) {
+  console.log(err)
+  rsp.status(resultCode.HTTP_500_INTERNAL_SERVER_ERROR).send(err)
+}
+
+
+async function login(req, rsp) {
+  const { email, password } = req.body
+
+  return knex('tblEmailLogin')
+    .select('email', 'userId')
+    .from('tblEmailLogin')
+    .where({
+      email: email,
+      pwHash: password,
+    })
+    .then(res => onLoginQuerySuccess(req, rsp, res))
+    .catch(err => onLoginQueryError(req, rsp, err))
 }
 
 
 module.exports = {
   addUser,
-  login: (req, res) => {
-    /*
-    const { name, password } = req.body;
-
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      let status = 200;
-      if(!err) {
-        User.findOne({name}, (err, user) => {
-          if (!err && user) {
-            // We could compare passwords in our model instead of below as well
-            bcrypt.compare(password, user.password).then(match => {
-              if (match) {
-                status = 200;
-                // Create a token
-                const payload = { user: user.name };
-                const options = { expiresIn: '2d', issuer: 'https://scotch.io' };
-                const secret = process.env.JWT_SECRET;
-                const token = jwt.sign(payload, secret, options);
-
-                // console.log('TOKEN', token);
-                result.token = token;
-                result.status = status;
-                result.result = user;
-              } else {
-                status = 401;
-                result.status = status;
-                result.error = `Authentication error`;
-              }
-              res.status(status).send(result);
-            }).catch(err => {
-              status = 500;
-              result.status = status;
-              result.error = err;
-              res.status(status).send(result);
-            });
-          } else {
-            status = 404;
-            result.status = status;
-            result.error = err;
-            res.status(status).send(result);
-          }
-        });
-      } else {
-        status = 500;
-        result.status = status;
-        result.error = err;
-        res.status(status).send(result);
-      }
-    });
-    */
-  },
+  login,
 
   getAll: (req, res) => {
     /*

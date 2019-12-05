@@ -1,57 +1,57 @@
 const tables = [
   {
-    name: 'tbl_operator',
+    name: 'tblOperator',
     columns: [
       'user_id',  // foreign key on tbl_user.id
     ],
   },
   {
-    name: 'tbl_email_login',
+    name: 'tblEmailLogin',
     columns: [
       'email',
       'password',
-      'user_id',  // foreign key to tbl_user.id
+      'userId',  // foreign key to tbl_user.id
     ],
   },
   {
-    name: 'tbl_sso_login',
+    name: 'tblSsoLogin',
     columns: [
-      'sso_provider',  // e.g. google, fb, etc.
-      'external_id',  // user's unique identifier given by sso provider
-      'user_id',  // foreign key to tbl_user.id
+      'ssoProvider',  // e.g. google, fb, etc.
+      'externalId',  // user's unique identifier given by sso provider
+      'userId',  // foreign key to tbl_user.id
     ],
   },
   {
-    name: 'tbl_user',
+    name: 'tblUser',
     columns: [
       'id',
-      'first_name',
-      'middle_name',
-      'last_name',
+      'firstName',
+      'middleName',
+      'lastName',
       'email',
-      'phone_number',
-      'address_line1',
-      'address_line2',
-      'address_line3',
+      'phoneNumber',
+      'addressLine1',
+      'addressLine2',
+      'addressLine3',
     ],
   },
   {
-    name: 'tbl_conference',
+    name: 'tblConference',
     columns: [
       'id',
       'name',
-      'start_date',
-      'end_date',
-      'venue_line1',
-      'venue_line2',
-      'venue_line3',
+      'startDate',
+      'endDate',
+      'venueLine1',
+      'venueLine2',
+      'venueLine3',
     ],
   },
   {
-    name: 'tbl_conference_member',
+    name: 'tblConferenceMember',
     columns: [
-      'user_id',
-      'conference_id',
+      'userId',
+      'conferenceId',
     ]
   },
 ];

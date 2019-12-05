@@ -3,65 +3,97 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 const schema = require('../models/schema')
 const validator = require('validator')
-
-const Pool = require('pg').Pool
-const pool = new Pool({
-  host: 'localhost',
-  user: 'capn_noodles',
-  password: 'capn_noodles',
-  database: 'noodles',
-  port: 5432,
-})
+const connParam = require('../models/dbconnection')
+const pool = connParam.pool
+const knex = connParam.knex
+const resultCode = require('../result_code')
 
 
 function isAddUserRequestValid(fields) {
   let isValid = true
 
-  isValid &= validator.isEmail(fields.email)
+  try {
+    isValid &= validator.isEmail(fields.email)
+  } catch (err) {
+    isValid = false
+  }
 
   return isValid
 }
 
 
-async function addUser(req, res) {
-  const body = req.body
-  
-  const query = 'INSERT INTO tbl_user (\
-    first_name, middle_name, last_name, email, phone_number,\
-    address_line1, address_line2, address_line3)\
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8);'
-  const queryVals = [
-    body.first_name,
-    body.middle_name,
-    body.last_name,
-    body.email,
-    body.phone_number,
-    body.address_line1,
-    body.address_line2,
-    body.address_line3
-  ]
+function onAddUserSuccess(req, rsp, res) {
+  result = res
+  rsp.status(resultCode.HTTP_201_CREATED).send(JSON.stringify(res))
 
+  // console.log(`rowcount=${result.rowCount}`)
+  // console.log(`result=${JSON.stringify(result)}`)
+}
+
+
+function onAddUserError(req, rsp, err) {
+  console.error(`Error executing transaction: ${err}`)
+  let ecode = resultCode.HTTP_500_INTERNAL_SERVER_ERROR
+  let result = err
+
+  if (23505 === Number(err.code)) {
+    ecode = resultCode.HTTP_422_UNPROCESSABLE_ENTITY
+    result = {
+      ecode: resultCode.ERR_ACCOUNT_EXISTS,
+      reason: 'User account was not created because specified email is already registered.',
+    }
+  }
+  rsp.status(ecode).send(result)
+}
+
+
+async function addUser(req, rsp) {
   status = 201
   result = ''
 
-  if (isAddUserRequestValid(req.body))
-  {
-    try {
-      result = await pool.query(query, queryVals);
-      console.log(`rowcount=${result.rowCount}`)
-      console.log(`result=${result}`)
-    } catch (err) {
-      console.error(err)
-    }  
+  if (isAddUserRequestValid(req.body)) {
+    knex.transaction(trx => {
+      return trx
+        .insert({
+          createdAt: new Date().toUTCString(),
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          status: 'active',
+        }, 'id')
+        .into('tblUser')
+        .then(id => {
+          // console.log(`--> id is ${id}:${typeof id}:${id.toString()}`)
+          return trx.insert({
+            email: req.body.email,
+            pwHash: req.body.password,
+            userId: id[0],
+          })
+          .into('tblEmailLogin')
+          .catch(err => {
+            console.error(`Error inserting into login table: ${err}`)
+            throw err
+          })
+        })
+        .catch(err => {
+          console.error(`Error while inserting: ${err}`)
+          throw err
+        })
+    })
+    .then(result => onAddUserSuccess(req, rsp, result))
+    .catch(err => onAddUserError(req, rsp, err))
   } else {
     status = 400  // invalid request
     result = {
       reason: 'One of the user data fields is invalid',
       original_request: JSON.stringify(req.body),
     }
+    rsp.status(status).send(result)
   }
+}
 
-  res.status(status).send(result)
+
+async function login(req, res) {
+
 }
 
 

@@ -1,12 +1,7 @@
 const schema = require('./schema')
-const Pool = require('pg').Pool
-const pool = new Pool({
-  host: 'localhost',
-  user: 'capn_noodles',
-  password: 'capn_noodles',
-  database: 'noodles',
-  port: 5432,
-})
+const conn = require('./dbconnection')
+const pool = conn.pool
+const knex = conn.knex
 
 
 async function verifyConnection() {

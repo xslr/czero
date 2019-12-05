@@ -5,12 +5,15 @@ const environment = process.env.NODE_ENV;
 const stage = require('../config')[environment];
 
 
+const userInfoColumns = [
+  'addressCountry', 'addressLine1', 'addressLine2', 'addressZip',
+  'createdAt', 'deletedAt', 'email', 'firstName', 'id', 'lastName',
+  'middleName', 'phone', 'status', 'updatedAt']
+
 async function getUserById(id) {
   let user = await knex('tblUser')
     .join('tblEmailLogin', 'tblUser.id', 'tblEmailLogin.userId')
-    .select('addressCountry', 'addressLine1', 'addressLine2', 'addressZip',
-            'createdAt', 'deletedAt', 'email', 'firstName', 'id', 'lastName',
-            'middleName', 'phone', 'status', 'updatedAt')
+    .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('id', id)
 
@@ -22,9 +25,7 @@ async function getUserById(id) {
 async function getUserByEmail(email) {
   let user = await knex('tblUser')
     .join('tblEmailLogin', 'tblUser.id', 'tblEmailLogin.userId')
-    .select('addressCountry', 'addressLine1', 'addressLine2', 'addressZip',
-            'createdAt', 'deletedAt', 'email', 'firstName', 'id', 'lastName',
-            'middleName', 'phone', 'status', 'updatedAt')
+    .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('email', email)
 

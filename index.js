@@ -28,11 +28,11 @@ if (environment !== 'production') {
 pre_launch_check()
   .then((res) => {
     app.use('/api/v0', routes(router));
-  
+
     app.listen(`${stage.port}`, () => {
       console.log(`Server now listening at localhost:${stage.port}`);
     });
-    
+
     module.exports = app;
   })
   .catch(err => {

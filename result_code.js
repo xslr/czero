@@ -6,6 +6,8 @@ const ResultCode = Object.freeze({
   'OK_ACCOUNT_CREATED': 5,
   'ERR_UNKNOWN_USER_ID': 6,
   'ERR_UNKNOWN_USER_EMAIL': 7,
+  'ERR_AUTH_TOKEN_MISSING': 8,
+  'ERR_MISSING_DATA': 9,
 })
 
 const HttpStatus = Object.freeze({

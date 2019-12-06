@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/users');
+const UserModel = require('../models/users');
 const validator = require('validator')
 const { knex } = require('../models/dbconnection')
 const { ResultCode, HttpStatus, mkResult } = require('../result_code')
@@ -152,7 +152,7 @@ async function getUserById(req, rsp) {
   }
 
   const userId = Number(req.params.userId)
-  let user = await User.getUserById(userId)
+  let user = await UserModel.getUserById(userId)
   if (null == user || user.email != req.decodedToken.email) {
     rsp.status(HttpStatus.HTTP_404_NOT_FOUND)
        .send(mkResult(ResultCode.ERR_UNKNOWN_USER_ID, 'A user with specified id was not found.'))
@@ -167,13 +167,13 @@ async function getUserByEmail(req, rsp) {
   console.log(req.body.authToken)
 
   if (!req.decodedToken) {
-    rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR)
-       .send(mkResult(ResultCode.ERR_UNKNOWN, '!! userId should never be blank on this route'))
+    rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED)
+       .send(mkResult(ResultCode.ERR_AUTH_TOKEN_MISSING, 'Auth token is required to get user data.'))
     return
   }
 
   const email = req.decodedToken.email
-  let user = await User.getUserByEmail(email)
+  let user = await UserModel.getUserByEmail(email)
   if (null == user) {
     rsp.status(HttpStatus.HTTP_404_NOT_FOUND)
        .send(mkResult(ResultCode.ERR_UNKNOWN_USER_EMAIL, 'A user with specified email was not found.'))
@@ -184,7 +184,39 @@ async function getUserByEmail(req, rsp) {
 }
 
 
-async function update(req, rsp) {}
+async function update(req, rsp) {
+  if (!req.decodedToken) {
+    rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED)
+      .send(mkResult(ResultCode.ERR_AUTH_TOKEN_MISSING, 'Auth token is required to update user data.'))
+    return
+  }
+
+  const tokenEmail = req.decodedToken.email
+  const userUpdateString = req.body.userUpdate
+  if (!userUpdateString) {
+    rsp.status(HttpStatus.HTTP_400_BAD_REQUEST)
+      .send(mkResult(ResultCode.ERR_MISSING_DATA, 'userUpdate was not provided.'))
+    return
+  }
+  const userUpdate = JSON.parse(userUpdateString)
+  if (tokenEmail != userUpdate.email) {
+    rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED)
+      .send(mkResult(ResultCode.ERR_INCORRECT_LOGIN,
+                     'The user is not authorised to modify this user\'s data.'))
+    console.warn(`The user is not authorised to modify this user\'s data. ${tokenEmail} != ${userUpdate.email}`)
+    return
+  }
+
+  result = await UserModel.updateUser(userUpdate)
+  // console.log(`result of update = ${JSON.stringify(result)}`)
+  if (!result.status) {
+    rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR)
+      .send(mkResult(ResultCode.ERR_UNKNOWN, 'A user with specified email was not found.'))
+  } else {
+    rsp.status(HttpStatus.HTTP_200_OK)
+      .send(result.detail)
+  }
+}
 
 
 async function deactivate(req, rsp) {}

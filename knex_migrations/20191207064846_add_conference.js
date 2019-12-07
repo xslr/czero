@@ -14,7 +14,8 @@ exports.up = function(knex) {
 
       t.string('venueLine1').nullable()
       t.string('venueLine2').nullable()
-      t.string('venueLine3').nullable()})
+      t.string('venueLine3').nullable()
+    })
     .createTable('tblConferenceMember', function(t) {
       t.integer('userId').unsigned().notNull()
       t.integer('conferenceId').unsigned().notNull()
@@ -22,7 +23,8 @@ exports.up = function(knex) {
 
       t.foreign('conferenceId').references('id').inTable('tblConference')
       t.foreign('userId').references('id').inTable('tblUser')
-      t.primary(['conferenceId', 'userId'])})
+      t.primary(['conferenceId', 'userId'])
+    })
 };
 
 exports.down = function(knex) {

@@ -17,13 +17,15 @@ exports.up = function(knex, Promise) {
       t.string('addressZip').nullable()
       t.string('addressCountry').nullable()
 
-      t.enum('status', ['active', 'inactive'], { useNative: true, enumName: 'typeUserStatus' }).notNull()})
+      t.enum('status', ['active', 'inactive'], { useNative: true, enumName: 'typeUserStatus' }).notNull()
+    })
     .createTable('tblEmailLogin', function(t) {
       t.string('email').primary().notNull()
       t.string('pwHash').notNull()
       t.integer('userId').unsigned().notNull()
 
-      t.foreign('userId').references('id').inTable('tblUser')})
+      t.foreign('userId').references('id').inTable('tblUser')
+    })
 }
 
 exports.down = function(knex, Promise) {

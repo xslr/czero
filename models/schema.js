@@ -13,6 +13,7 @@ const tables = [
       'userId',  // foreign key to tbl_user.id
     ],
   },
+  /* disable check until sso login is implemented
   {
     name: 'tblSsoLogin',
     columns: [
@@ -21,6 +22,7 @@ const tables = [
       'userId',  // foreign key to tbl_user.id
     ],
   },
+  */
   {
     name: 'tblUser',
     columns: [

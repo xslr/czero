@@ -1,9 +1,6 @@
 const { knex } = require('./dbconnection')
 const { ResultCode } = require('../result_code')
 
-const environment = process.env.NODE_ENV;
-const stage = require('../config')[environment];
-
 
 const userInfoColumns = [
   'addressCountry', 'addressLine1', 'addressLine2', 'addressZip',

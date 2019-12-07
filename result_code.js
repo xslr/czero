@@ -8,6 +8,7 @@ const ResultCode = Object.freeze({
   'ERR_UNKNOWN_USER_EMAIL': 7,
   'ERR_AUTH_TOKEN_MISSING': 8,
   'ERR_MISSING_DATA': 9,
+  'ERR_INVALID_ROLE': 10,
 })
 
 const HttpStatus = Object.freeze({

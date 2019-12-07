@@ -1,0 +1,32 @@
+exports.up = function(knex) {
+
+  return knex.schema
+    .createTable('tblConference', function(t) {
+      t.increments('id').primary()
+      t.string('name').notNull()
+
+      t.dateTime('dateConfStart').notNull()
+      t.dateTime('dateConfEnd').notNull()
+      t.dateTime('dateOpenToSubmit').notNull()
+      t.dateTime('dateSubmissionDeadline').notNull()
+      t.dateTime('datePaperAcceptConfirm').notNull()
+      t.dateTime('dateSubmitFinalDraft').notNull()
+
+      t.string('venueLine1').nullable()
+      t.string('venueLine2').nullable()
+      t.string('venueLine3').nullable()})
+    .createTable('tblConferenceMember', function(t) {
+      t.integer('userId').unsigned().notNull()
+      t.integer('conferenceId').unsigned().notNull()
+      t.enum('role', ['program_chair', 'attendee', 'reviewer?', 'author?'], { useNative: true, enumName: 'typeConferenceRole' }).notNull()
+
+      t.foreign('conferenceId').references('id').inTable('tblConference')
+      t.foreign('userId').references('id').inTable('tblUser')
+      t.primary(['conferenceId', 'userId'])})
+};
+
+exports.down = function(knex) {
+  return knex.schema.dropTable('tblConferenceMember')
+                    .dropTable('tblConference')
+                    .raw('DROP TYPE "typeConferenceRole"')
+};

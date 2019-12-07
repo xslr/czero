@@ -27,13 +27,14 @@ const HttpStatus = Object.freeze({
 
 
 function resultText(code) {
-  if(Object.keys(ResultCode).length) {
+  if (Object.keys(ResultCode).length) {
     Object.keys(ResultCode).forEach(key => {
       if (Object.values(key) == code)
         return key
     })
   }
 }
+
 
 function mkResult(code, reason) {
   return {
@@ -42,5 +43,6 @@ function mkResult(code, reason) {
     reason: reason,
   }
 }
+
 
 module.exports = { ResultCode, HttpStatus, mkResult }

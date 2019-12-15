@@ -4,20 +4,14 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.confapp.dev
-    container_name: confapp
+      dockerfile: ./docker/Dockerfile.confapp.dev
+    container_name: app
     volumes:
       - .:/home/node/app
       - node_mods:/home/node/app/node_modules
     depends_on:
       - db
-    environment:
-      NODE_ENV: development
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: noodles_dev
-      DB_USER: capn_noodles
-      DB_PASS: capn_noodles
+    env_file: development.env
     networks:
       - confnet
     ports:
@@ -25,16 +19,8 @@ services:
 
   db:
     image: postgres:alpine
-    container_name: confdb
-    environment:
-      NODE_ENV: development
-      POSTGRES_PASSWORD: rootpass
-      POSTGRES_USER: postgres_admin
-      POSTGRES_DB: postgres
-
-      DB_NAME: noodles_dev
-      DB_USER: capn_noodles
-      DB_PASS: capn_noodles
+    container_name: db
+    env_file: development.env
     volumes:
       - postgresql:/var/lib/postgresql
       # This needs explicit mapping due to https://github.com/docker-library/postgres/blob/4e48e3228a30763913ece952c611e5e9b95c8759/Dockerfile.template#L52
@@ -49,7 +35,7 @@ services:
 
   adminer:
     image: adminer
-    container_name: confdbadmin
+    container_name: dbadminer
     restart: always
     networks:
       - confnet

@@ -14,7 +14,7 @@ const { knex, stage } = require('./models/dbconnection')
 
 async function pre_launch_check() {
   const dbcheck = require('./models/dbcheck')
-  let tries = 3
+  let tries = stage.db.connectRetryCount
 
   while (tries > 0) {
     tries--
@@ -33,13 +33,13 @@ async function pre_launch_check() {
       // connection ok
       break
     } else if (tries > 0) {
-      // connection NOK. Retry attempts remaining
+      // connection NOK but we can still retry
       console.warn('Sleeping before retry. Database might not be ready.')
-      await new Promise(resolve => setTimeout(resolve, 4000))
+      await new Promise(resolve => setTimeout(resolve, stage.db.connectRetryInterval))
     } else {
-      // connection NOK. retry attempts exhausted
+      // connection NOK and retry attempts exhausted
       console.error('Could not connect to database. Giving up')
-      process.exit(1)
+      process.exit(100)
     }
   }
 }

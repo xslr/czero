@@ -9,6 +9,9 @@ const development = {
     database: process.env.DB_NAME || 'noodles',
     user:     process.env.DB_USER || 'capn_noodles',
     password: process.env.DB_PASS || 'capn_noodles',
+
+    connectRetryCount: process.env.DB_CONNECT_RETRY_COUNT || 3,
+    connectRetryInterval: process.env.DB_CONNECT_RETRY_INTERVAL_MS || 4000,
   },
 
   // payments info

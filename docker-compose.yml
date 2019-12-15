@@ -11,7 +11,7 @@ services:
       - node_mods:/home/node/app/node_modules
     depends_on:
       - db
-    env_file: development.env
+    env_file: ./docker/development.env
     networks:
       - confnet
     ports:
@@ -20,7 +20,7 @@ services:
   db:
     image: postgres:alpine
     container_name: db
-    env_file: development.env
+    env_file: ./docker/development.env
     volumes:
       - postgresql:/var/lib/postgresql
       # This needs explicit mapping due to https://github.com/docker-library/postgres/blob/4e48e3228a30763913ece952c611e5e9b95c8759/Dockerfile.template#L52

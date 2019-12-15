@@ -88,6 +88,7 @@ function mkPayUPaymentRequest() {
   }
 }
 
+
 async function beginRegistration(req, rsp) {
   // prepare payment request
   // post to payment url of payumoney
@@ -102,7 +103,11 @@ async function sboxJoinConference(req, rsp) {
     conferenceId: conferenceId,
     key: stage.merchantKey,
     salt: stage.merchantSalt,
-  });
+    ip: stage.ip,
+    port: stage.port,
+    surl: `http://${stage.ip}:${stage.port}/api/v0/conference/paymentSuccess`,
+    furl: `http://${stage.ip}:${stage.port}/api/v0/conference/paymentFail`,
+  })
 
   // rsp.status(HttpStatus.HTTP_200_OK).send(conferenceId)
 }
@@ -128,10 +133,31 @@ async function beginPayment(req, rsp) {
   let response = req.body
   response.merchantKey = stage.merchantKey
   response.transactionHash = hash
-  response.surl = 'http://localhost:3000'
-  response.furl = 'http://localhost:3000'
+  response.surl = `http://${stage.ip}:${stage.port}/api/v0/conference/paymentSuccess`
+  response.furl = `http://${stage.ip}:${stage.port}/api/v0/conference/paymentFail`
 
   rsp.status(HttpStatus.HTTP_200_OK).send(response)
+}
+
+
+async function paymentSuccess(req, rsp) {
+  console.log(`paymentSuccess: ${JSON.stringify(req.body)}`)
+
+  rsp.status(HttpStatus.HTTP_200_OK).send()
+}
+
+
+async function paymentFail(req, rsp) {
+  console.log(`paymentFail: ${JSON.stringify(req.body)}`)
+
+  rsp.status(HttpStatus.HTTP_200_OK).send()
+}
+
+
+async function paymentGatewayReturn(req, rsp) {
+  console.log(`paymentGatewayReturn: ${JSON.stringify(req.body)}`)
+
+  rsp.status(HttpStatus.HTTP_200_OK).send()
 }
 
 
@@ -144,4 +170,7 @@ module.exports = {
   sboxJoinConference,  // endpoint to test joining a conference
   getRequestHash,
   beginPayment,
+  paymentSuccess,
+  paymentFail,
+  paymentGatewayReturn,
 }

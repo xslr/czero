@@ -43,8 +43,8 @@
 		</div>
 		<form action="#" id="payment_form">
 			<input type="hidden" id="udf5" name="udf5" value="BOLT_KIT_NODE_JS" />
-			<input type="hidden" id="surl" name="surl" value="http://localhost:3000/sandbox/response.html" />
-			<input type="hidden" id="furl" name="surl" value="http://localhost:3000/sandbox/response.html" />
+			<input type="hidden" id="surl" name="surl" value="<%= surl %>" />
+			<input type="hidden" id="furl" name="furl" value="<%= furl %>" />
 			<div class="dv">
 				<span class="text"><label>Merchant Key:</label></span>
 				<span><input type="text" id="key" name="key" placeholder="Merchant Key" value="<%= key %>" /></span>
@@ -170,7 +170,7 @@
 
 		function beginPayment() {
 			$.ajax({
-				url: `http://localhost:3000/api/v0/conference/beginPayment`,
+				url: 'http://<%=ip%>:<%=port%>/api/v0/conference/beginPayment',
 				type: 'post',
 				data: JSON.stringify({
 					conferenceId: $('#confid').val(),

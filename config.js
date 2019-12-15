@@ -1,5 +1,6 @@
 const development = {
-  port: process.env.PORT || 3000,
+  port: process.env.SERVER_PORT || 3000,
+  ip: process.env.SERVER_IP || '127.0.0.1',
   saltingRounds: 10,
 
   // database access
@@ -21,6 +22,7 @@ const development = {
 
 const production = {
   port: process.env.PORT || 3010,
+  ip: process.env.SERVER_IP || '127.0.0.1',
   saltingRounds: 20,
 
   // TODO: update to prod keys
@@ -39,5 +41,5 @@ const stage = configs[environment]
 module.exports = {
   development,
   production,
-  stage
+  stage,
 }

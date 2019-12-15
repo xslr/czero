@@ -63,7 +63,7 @@ pre_launch_check()
     app.use('/api/v0', routes(router));
 
     app.listen(`${stage.port}`, () => {
-      console.log(`Server now listening at localhost:${stage.port}`);
+      console.log(`Server now listening at ${stage.ip}:${stage.port}`);
     });
 
     module.exports = app;

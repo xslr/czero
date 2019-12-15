@@ -18,6 +18,15 @@ module.exports = (router) => {
   router.route('/conference/beginPayment')
     .post(controller.beginPayment)
 
+  router.route('/conference/afterPayment')
+    .get(controller.paymentGatewayReturn)
+
+  router.route('/conference/paymentSuccess')
+    .post(controller.paymentSuccess)
+
+  router.route('/conference/paymentFail')
+    .post(controller.paymentFail)
+
   router.route('/conference/:conferenceId/join')
     .get(controller.sboxJoinConference)  // TODO: replace with actual frontend
     .post(controller.beginRegistration)

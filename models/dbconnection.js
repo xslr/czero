@@ -1,21 +1,12 @@
-const environment = process.env.ENVIRONMENT || 'development'
-const config = require('../knexfile.js')[environment]
-
-const connectionParam = {
-  host:     config.connection.host,
-  port:     config.connection.port,
-  database: config.connection.database,
-  user:     config.connection.user ,
-  password: config.connection.password,
-}
+const { knexConfig, stage } = require('../knexfile.js')
 
 const Pool = require('pg').Pool
-const pool = new Pool(connectionParam)
-const knex = require('knex')(config)
+const pool = new Pool(stage.db)
+const knex = require('knex')(knexConfig)
 
 
 module.exports = {
-  connectionParam,
+  stage,
   pool,
   knex,
 }

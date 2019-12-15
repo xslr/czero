@@ -2,10 +2,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/users');
 const validator = require('validator')
-const { knex } = require('../models/dbconnection')
+const { knex, stage } = require('../models/dbconnection')
 const { ResultCode, HttpStatus, mkResult } = require('../result_code')
-const environment = process.env.NODE_ENV // development
-const stage = require('../config')[environment]
 
 
 function isAddUserRequestValid(fields) {

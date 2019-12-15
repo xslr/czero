@@ -5,8 +5,9 @@ const ConferenceModel = require('../models/conference');
 // const validator = require('validator')
 // const { knex } = require('../models/dbconnection')
 const { ResultCode, HttpStatus, mkResult } = require('../result_code')
-// const environment = process.env.NODE_ENV // development
-// const stage = require('../config')[environment]
+const crypto = require('crypto')
+
+const { stage } = require('../config')
 
 
 async function add(req, rsp) {
@@ -81,9 +82,66 @@ async function getAllConference(req, rsp) {}
 async function getConferenceById(req, rsp) {}
 
 
+function mkPayUPaymentRequest() {
+  return {
+
+  }
+}
+
+async function beginRegistration(req, rsp) {
+  // prepare payment request
+  // post to payment url of payumoney
+}
+
+
+async function sboxJoinConference(req, rsp) {
+  console.log(req.params)
+  conferenceId = req.params.conferenceId
+
+  rsp.render(__dirname + '/../sandbox/sbox_joinconference.html', {
+    conferenceId: conferenceId,
+    key: stage.merchantKey,
+    salt: stage.merchantSalt,
+  });
+
+  // rsp.status(HttpStatus.HTTP_200_OK).send(conferenceId)
+}
+
+
+function getRequestHash(req) {
+  d = req.body
+
+  // console.log(`d=${JSON.stringify(d)}`)
+
+  var cryp = crypto.createHash('sha512')
+  const text = stage.merchantKey+'|'+d.conferenceId+'|'+d.amount+'|'+d.pinfo+'|'+d.fname+'|'+d.email+'|||||'+d.udf5+'||||||'+stage.merchantSalt
+  cryp.update(text)
+  hash = cryp.digest('hex')
+
+  return hash
+}
+
+
+async function beginPayment(req, rsp) {
+  const hash = getRequestHash(req)
+
+  let response = req.body
+  response.merchantKey = stage.merchantKey
+  response.transactionHash = hash
+  response.surl = 'http://localhost:3000'
+  response.furl = 'http://localhost:3000'
+
+  rsp.status(HttpStatus.HTTP_200_OK).send(response)
+}
+
+
 module.exports = {
   add,
   update,
   getAllConference,
   getConferenceById,
+  beginRegistration,
+  sboxJoinConference,  // endpoint to test joining a conference
+  getRequestHash,
+  beginPayment,
 }

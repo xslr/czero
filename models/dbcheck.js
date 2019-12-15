@@ -58,7 +58,7 @@ async function verifyTables() {
   const expectedTables = schema.tables
 
   const client = await pool.connect();
-  
+
   console.log('Checking tables')
   const tablesOk = await Promise.all(expectedTables.map(async (table) => {
     const tableOk = await hasTable(client, table)

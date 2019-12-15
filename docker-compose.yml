@@ -1,0 +1,67 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.confapp.dev
+    container_name: confapp
+    volumes:
+      - .:/home/node/app
+      - node_mods:/home/node/app/node_modules
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: noodles_dev
+      DB_USER: capn_noodles
+      DB_PASS: capn_noodles
+    networks:
+      - confnet
+    ports:
+      - 3000:3000
+
+  db:
+    image: postgres:alpine
+    container_name: confdb
+    environment:
+      NODE_ENV: development
+      POSTGRES_PASSWORD: rootpass
+      POSTGRES_USER: postgres_admin
+      POSTGRES_DB: postgres
+
+      DB_NAME: noodles_dev
+      DB_USER: capn_noodles
+      DB_PASS: capn_noodles
+    volumes:
+      - postgresql:/var/lib/postgresql
+      # This needs explicit mapping due to https://github.com/docker-library/postgres/blob/4e48e3228a30763913ece952c611e5e9b95c8759/Dockerfile.template#L52
+      - postgresql_data:/var/lib/postgresql/data
+      - ./pgdb_init:/docker-entrypoint-initdb.d
+    networks:
+      - confnet
+    # ports:
+      # - 5432:5432
+    expose:
+      - 5432
+
+  adminer:
+    image: adminer
+    container_name: confdbadmin
+    restart: always
+    networks:
+      - confnet
+    ports:
+      - 8080:8080
+
+volumes:
+  node_mods:
+  postgresql:
+  postgresql_data:
+
+
+networks:
+  confnet:
+    driver: bridge

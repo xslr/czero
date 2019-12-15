@@ -1,0 +1,19 @@
+FROM node:lts-alpine
+
+# Create app directory
+RUN mkdir -p /home/node/app
+WORKDIR /home/node/app
+
+# Install dependencies
+RUN apk add --update \
+  build-base \
+  python3
+COPY package.json .
+RUN npm install
+
+# Bundle app source
+COPY . .
+
+# Exports
+EXPOSE 3000
+CMD ["npm", "run", "dev"]

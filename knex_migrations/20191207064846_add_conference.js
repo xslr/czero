@@ -5,8 +5,8 @@ exports.up = function(knex) {
       t.increments('id').primary()
       t.string('name').notNull()
 
-      t.dateTime('dateConfStart').notNull()
-      t.dateTime('dateConfEnd').notNull()
+      t.dateTime('dateStart').notNull()
+      t.dateTime('dateEnd').notNull()
       t.dateTime('dateOpenToSubmit').notNull()
       t.dateTime('dateSubmissionDeadline').notNull()
       t.dateTime('datePaperAcceptConfirm').notNull()
@@ -25,10 +25,11 @@ exports.up = function(knex) {
       t.foreign('userId').references('id').inTable('tblUser')
       t.primary(['conferenceId', 'userId'])
     })
-};
+}
 
 exports.down = function(knex) {
-  return knex.schema.dropTable('tblConferenceMember')
-                    .dropTable('tblConference')
-                    .raw('DROP TYPE "typeConferenceRole"')
-};
+  return knex.schema
+    .dropTable('tblConferenceMember')
+    .dropTable('tblConference')
+    .raw('DROP TYPE "typeConferenceRole"')
+}

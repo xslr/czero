@@ -36,7 +36,7 @@
 <body>
 	<div class="main">
 		<div>
-			<img src="./images/payumoney.png" />
+			<img src="/images/payumoney.png" />
 		</div>
 		<div>
 			<h3>NODE.JS BOLT Kit</h3>
@@ -77,7 +77,7 @@
 
 			<div class="dv">
 				<span class="text"><label>Email ID:</label></span>
-				<span><input type="text" id="email" name="email" placeholder="Email ID" value="test@example.com" /></span>
+				<span><input type="text" id="email" name="email" placeholder="Email ID" value="name@example.com" /></span>
 			</div>
 
 			<div class="dv">
@@ -170,7 +170,7 @@
 
 		function beginPayment() {
 			$.ajax({
-				url: 'http://<%=ip%>:<%=port%>/api/v0/conference/beginPayment',
+				url: 'http://<%=ip%>:<%=port%>/api/v0/conference/<%=conferenceId%>/join',
 				type: 'post',
 				data: JSON.stringify({
 					conferenceId: $('#confid').val(),

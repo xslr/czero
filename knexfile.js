@@ -37,9 +37,6 @@ const configs = {
   production,
 }
 
-const knexConfig = configs[process.env.NODE_ENV]
-
-module.exports = {
-  knexConfig,
-  stage,
-};
+// export just the knex config for current environment, and nothing else.
+// Or knex cli gets confused
+module.exports = configs[stage.environment] || development

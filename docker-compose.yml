@@ -37,6 +37,8 @@ services:
     image: adminer
     container_name: dbadminer
     restart: always
+    depends_on:
+      - db
     networks:
       - confnet
     ports:

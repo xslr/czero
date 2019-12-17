@@ -84,8 +84,8 @@ async function add(req, rsp) {
     .then(result => onAddUserQuerySuccess(req, rsp, result))
     .catch(err => onAddUserQueryError(req, rsp, err))
   } else {
-    httpStatus = HttpStatus.HTTP_400_BAD_REQUEST
-    result = {
+    const httpStatus = HttpStatus.HTTP_400_BAD_REQUEST
+    const result = {
       reason: 'One of the user data fields is invalid',
       original_request: JSON.stringify(req.body),
     }
@@ -97,7 +97,7 @@ async function add(req, rsp) {
 function getAuthToken(email) {
   // Create a token
   const payload = { email: email }
-  const options = { expiresIn: '2d', issuer: 'https://rnm.sg' }
+  const options = { expiresIn: '2d', issuer: stage.hostname }
   const secret = process.env.JWT_SECRET
   const token = jwt.sign(payload, secret, options)
 
@@ -113,8 +113,10 @@ function onLoginQuerySuccess(req, rsp, res) {
     const compareRes = bcrypt.compareSync(req.body.password, res[0].pwHash)
     if (compareRes) {
       httpStatus = HttpStatus.HTTP_200_OK
-      result = mkResult(ResultCode.OK_LOGIN_SUCCESS, 'Credentials accepted')
-      result.authToken = getAuthToken(res[0].email)
+      const token = getAuthToken(res[0].email)
+      if (token) {
+        result = { authToken: token }
+      }
     }
   }
   rsp.status(httpStatus).send(result)

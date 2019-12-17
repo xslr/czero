@@ -1,10 +1,8 @@
 const ConferenceModel = require('../models/conference');
+const PaymentModel = require('../models/payment')
 
-// const bcrypt = require('bcrypt');
-// const jwt = require('jsonwebtoken');
-// const validator = require('validator')
-// const { knex } = require('../models/dbconnection')
-const { ResultCode, HttpStatus, mkResult } = require('../result_code')
+const { mkResult } = require('../result_code')
+const { HttpStatus, PaymentStatus } = require('../constants')
 const crypto = require('crypto')
 
 const { stage } = require('../config')
@@ -89,15 +87,10 @@ function mkPayUPaymentRequest() {
 }
 
 
-async function beginRegistration(req, rsp) {
-  // prepare payment request
-  // post to payment url of payumoney
-}
-
-
+// sandbox to render payment page
 async function sboxJoinConference(req, rsp) {
   console.log(req.params)
-  conferenceId = req.params.conferenceId
+  const conferenceId = req.params.conferenceId
 
   rsp.render(__dirname + '/../sandbox/sbox_joinconference.html', {
     conferenceId: conferenceId,
@@ -114,20 +107,20 @@ async function sboxJoinConference(req, rsp) {
 
 
 function getRequestHash(req) {
-  d = req.body
+  const d = req.body
 
   // console.log(`d=${JSON.stringify(d)}`)
 
   var cryp = crypto.createHash('sha512')
   const text = stage.merchantKey+'|'+d.conferenceId+'|'+d.amount+'|'+d.pinfo+'|'+d.fname+'|'+d.email+'|||||'+d.udf5+'||||||'+stage.merchantSalt
   cryp.update(text)
-  hash = cryp.digest('hex')
+  const hash = cryp.digest('hex')
 
   return hash
 }
 
 
-async function beginPayment(req, rsp) {
+async function joinConference(req, rsp) {
   const hash = getRequestHash(req)
 
   let response = req.body
@@ -135,6 +128,21 @@ async function beginPayment(req, rsp) {
   response.transactionHash = hash
   response.surl = `http://${stage.ip}:${stage.port}/api/v0/conference/paymentSuccess`
   response.furl = `http://${stage.ip}:${stage.port}/api/v0/conference/paymentFail`
+
+  // TODO: generate non-sequential user facing transaction id for this payment
+
+  console.log(`${JSON.stringify(req.decodedToken)}`)
+
+  // record payment transaction in db
+  const p = {
+    amount: req.body.amount,
+    email: req.decodedToken.email,
+    status: PaymentStatus.PROCESSING,
+  }
+  const result = await PaymentModel.newPayment(p)
+  console.log(`newpayment result=${result}`)
+
+  // TODO: process payment creation result
 
   rsp.status(HttpStatus.HTTP_200_OK).send(response)
 }
@@ -154,23 +162,14 @@ async function paymentFail(req, rsp) {
 }
 
 
-async function paymentGatewayReturn(req, rsp) {
-  console.log(`paymentGatewayReturn: ${JSON.stringify(req.body)}`)
-
-  rsp.status(HttpStatus.HTTP_200_OK).send()
-}
-
-
 module.exports = {
   add,
   update,
   getAllConference,
   getConferenceById,
-  beginRegistration,
   sboxJoinConference,  // endpoint to test joining a conference
   getRequestHash,
-  beginPayment,
+  joinConference,
   paymentSuccess,
   paymentFail,
-  paymentGatewayReturn,
 }

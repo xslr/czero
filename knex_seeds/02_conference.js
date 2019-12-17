@@ -1,4 +1,3 @@
-// const { stage } = require('../config')
 
 exports.seed = function(knex) {
   // Deletes ALL existing entries

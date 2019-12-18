@@ -1,7 +1,8 @@
-const { HttpStatus } = require('./result_code')
+const { HttpStatus, ConferenceStatus } = require('./constants')
 const { stage } = require('./config.js')
 const jwt = require('jsonwebtoken');
 const { knex } = require('./models/dbconnection.js')
+const ConferenceModel = require('./models/conference')
 
 function validateLoginToken(req, rsp, next) {
   const token = req.body.authToken
@@ -19,8 +20,15 @@ function validateLoginToken(req, rsp, next) {
       // We call next to pass execution to the subsequent middleware
       next();
     } catch (err) {
-      // Throw an error just in case anything goes wrong with verification
-      throw new Error(err)
+      if (err.name === 'JsonWebTokenError'){
+        const result = {
+          error: err.message
+        };
+        rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED).send(result);
+      } else {
+        // Throw an error in case of unhandled errors
+        throw new Error(err)
+      }
     }
   } else {
     const result = {
@@ -30,6 +38,34 @@ function validateLoginToken(req, rsp, next) {
     rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED).send(result);
   }
 }
+
+
+async function validateConferenceJoinability(req, rsp, next) {
+  const cid = req.params.conferenceId
+  const result = await ConferenceModel.conferenceStatusById(cid)
+
+  console.log(`status=${result}`)
+  if (ConferenceStatus.OPEN === result || ConferenceStatus.ACTIVE === result) {
+    next()
+  } else {
+    let error = `unknown server error.`
+    let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
+
+    if (ConferenceStatus.NO_CONFERENCE === result) {
+      error = 'No such conference.'
+      status = HttpStatus.HTTP_422_UNPROCESSABLE_ENTITY
+    } else if (ConferenceStatus.CLOSED === result) {
+      error = 'Conference closed for registration.'
+      status = HttpStatus.HTTP_422_UNPROCESSABLE_ENTITY
+    }
+    rsp.status(status).send({
+      error: error,
+      reqBody: req.body,
+      reqParam: req.params,
+    })
+  }
+}
+
 
 async function preLaunchCheck() {
   const dbcheck = require('./models/dbcheck')
@@ -66,5 +102,6 @@ async function preLaunchCheck() {
 
 module.exports = {
   validateLoginToken,
+  validateConferenceJoinability,
   preLaunchCheck,
 }

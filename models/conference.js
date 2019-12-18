@@ -1,6 +1,7 @@
 const { knex } = require('../models/dbconnection')
 const { ResultCode } = require('../result_code')
 const UserModel = require('./users')
+const {ConferenceStatus}  = require('../constants')
 
 const ConferenceRoles = ['programChair', 'attendee', 'reviewer']
 
@@ -42,7 +43,7 @@ async function assignRole(confId, email, role) {
 }
 
 
-async function read(confId) {}
+async function read(cid) {}
 
 
 async function readAll() {}
@@ -51,7 +52,32 @@ async function readAll() {}
 async function update(confUpdate) {}
 
 
-async function remove(confId) {}
+async function remove(cid) {}
+
+
+function getConferenceStatus(conf) {
+  if (!conf)
+    return ConferenceStatus.NO_CONFERENCE
+
+  let status = ConferenceStatus.CLOSED
+  const now = new Date()
+  if (now < new Date(conf.dateStart)) {
+    status = ConferenceStatus.OPEN
+  } else if (now < new Date(conf.dateEnd)) {
+    status = ConferenceStatus.ACTIVE
+  }
+
+  return status
+}
+
+async function conferenceStatusById(cid) {
+  let c = await knex('tblConference').select().where('id', cid)
+  if (c instanceof Array) {
+    c = c[0]
+  }
+  const status = getConferenceStatus(c)
+  return status
+}
 
 
 module.exports = {
@@ -61,4 +87,5 @@ module.exports = {
   readAll,
   update,
   remove,
+  conferenceStatusById,
 }

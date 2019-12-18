@@ -22,8 +22,8 @@ module.exports = (router) => {
     .post(controller.paymentFail)
 
   router.route('/conference/:conferenceId/join')
-    .get(controller.sboxJoinConference)  // TODO: replace with actual frontend
-    .post(validator.validateLoginToken, controller.joinConference)
+    .get(controller.sboxJoinConference)  // FIXME: sandbox frontend for testing only
+    .post(validator.validateLoginToken, validator.validateConferenceJoinability, controller.joinConference)
 
   router.route('/conference/:conferenceId')
     .get(validator.validateLoginToken, controller.getConferenceById)

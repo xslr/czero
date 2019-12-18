@@ -3,7 +3,8 @@ exports.up = function(knex) {
   return knex.schema
     .createTable('tblPayment', function(t) {
       t.increments('id').primary()
-      t.integer('userId').unsigned().notNull()
+      t.integer('uid').unsigned().notNull()
+      t.integer('cid').unsigned().notNull()
       t.decimal('amount').notNull()
 
       t.dateTime('initiatedAt', {useTz: true}).notNull().defaultTo(knex.fn.now())
@@ -18,7 +19,8 @@ exports.up = function(knex) {
         'FAILED',     // txn processing completed by gateway with failed result
       ], { useNative: true, enumName: 'typePaymentStatus' }).notNull()
 
-      t.foreign('userId').references('id').inTable('tblUser')
+      t.foreign('uid').references('id').inTable('tblUser').onDelete('CASCADE')
+      t.foreign('cid').references('id').inTable('tblConference').onDelete('CASCADE')
     })
 }
 

@@ -123,28 +123,31 @@ function getRequestHash(req) {
 async function joinConference(req, rsp) {
   const hash = getRequestHash(req)
 
+  let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
   let response = req.body
-  response.merchantKey = stage.merchantKey
-  response.transactionHash = hash
-  response.surl = `http://${stage.ip}:${stage.port}/api/v0/conference/paymentSuccess`
-  response.furl = `http://${stage.ip}:${stage.port}/api/v0/conference/paymentFail`
-
-  // TODO: generate non-sequential user facing transaction id for this payment
-
-  console.log(`${JSON.stringify(req.decodedToken)}`)
+  response.key = stage.merchantKey
+  response.txnHash = hash
+  response.surl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.conferenceId}/paymentSuccess`
+  response.furl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.conferenceId}/paymentFail`
 
   // record payment transaction in db
   const p = {
     amount: req.body.amount,
+    cid: req.params.conferenceId,
     email: req.decodedToken.email,
     status: PaymentStatus.PROCESSING,
   }
   const result = await PaymentModel.newPayment(p)
-  console.log(`newpayment result=${result}`)
 
-  // TODO: process payment creation result
+  if (0 === result.length) {
+    response = null
+  } else {
+    delete response.authToken
+    response.txnId = result[0]
+    status = HttpStatus.HTTP_200_OK
+  }
 
-  rsp.status(HttpStatus.HTTP_200_OK).send(response)
+  rsp.status(status).send(response)
 }
 
 

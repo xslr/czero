@@ -34,6 +34,13 @@ const PaymentStatus = Object.freeze({
   'PAID': 4,
 })
 
+const ConferenceStatus = Object.freeze({
+  'NO_CONFERENCE': 0,
+  'OPEN': 1,
+  'ACTIVE': 2,
+  'CLOSED': 3,
+})
+
 function paymentStatusAsString(status) {
   return Object.keys(PaymentStatus)[status]
 }
@@ -42,5 +49,6 @@ module.exports = {
   ResultCode,
   HttpStatus,
   PaymentStatus,
+  ConferenceStatus,
   paymentStatusAsString,
 }

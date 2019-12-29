@@ -105,12 +105,12 @@ function getAuthToken(email) {
 }
 
 
-function onLoginQuerySuccess(req, rsp, res) {
+function onLoginQuerySuccess(password, rsp, res) {
   let httpStatus = HttpStatus.HTTP_401_UNAUTHORIZED
-  let result = mkResult(ResultCode.ERR_INCORRECT_LOGIN, 'Incorrect credentials')
+  let result = mkResult(ResultCode.ERR_INCORRECT_LOGIN, 'incorrect credentials')
 
   if (Array.isArray(res) && res.length > 0) {
-    const compareRes = bcrypt.compareSync(req.body.password, res[0].pwHash)
+    const compareRes = bcrypt.compareSync(password, res[0].pwHash)
     if (compareRes) {
       httpStatus = HttpStatus.HTTP_200_OK
       const token = getAuthToken(res[0].email)
@@ -124,20 +124,27 @@ function onLoginQuerySuccess(req, rsp, res) {
 
 
 function onLoginQueryError(req, rsp, err) {
-  console.log(err)
-  rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(err)
+  rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(JSON.stringify(err))
 }
 
 
 async function login(req, rsp) {
-  const { email } = req.body
+  const { email, password } = req.body
+
+  if (email === undefined) {
+    rsp.status(HttpStatus.HTTP_400_BAD_REQUEST).send(mkResult(ResultCode.ERR_MISSING_DATA, 'email missing'))
+    return
+  } else if (password === undefined) {
+    rsp.status(HttpStatus.HTTP_400_BAD_REQUEST).send(mkResult(ResultCode.ERR_MISSING_DATA, 'password missing'))
+    return
+  }
 
   return knex('tblEmailLogin')
     .select('email', 'pwHash', 'userId')
     .where({
       email: email,
     })
-    .then(res => onLoginQuerySuccess(req, rsp, res))
+    .then(res => onLoginQuerySuccess(password, rsp, res))
     .catch(err => onLoginQueryError(req, rsp, err))
 }
 

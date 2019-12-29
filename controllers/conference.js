@@ -99,13 +99,12 @@ async function sboxJoinConference(req, rsp) {
 }
 
 
-function getRequestHash(req) {
-  const d = req.body
-
-  // console.log(`d=${JSON.stringify(d)}`)
+function getRequestHash(req, txnId) {
+  const b = req.body
+  const u = req.user
 
   var cryp = crypto.createHash('sha512')
-  const text = stage.merchantKey+'|'+d.conferenceId+'|'+d.amount+'|'+d.pinfo+'|'+d.fname+'|'+d.email+'|||||'+d.udf5+'||||||'+stage.merchantSalt
+  const text = stage.merchantKey+'|'+txnId+'|'+b.amount+'|'+b.pinfo+'|'+u.firstName+'|'+u.email+'|||||'+b.udf5+'||||||'+stage.merchantSalt
   cryp.update(text)
   const hash = cryp.digest('hex')
 
@@ -114,22 +113,22 @@ function getRequestHash(req) {
 
 
 async function joinConference(req, rsp) {
-  const hash = getRequestHash(req)
+  const user = req.user
+  const body = req.body
 
-  console.log(`k=${stage.merchantKey}`)
   let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
-  let response = req.body
+  let response = body
   response.key = stage.merchantKey
-  response.txnHash = hash
   response.surl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.conferenceId}/paymentSuccess`
   response.furl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.conferenceId}/paymentFail`
 
   // record payment transaction in db
   const p = {
-    amount: req.body.amount,
+    amount: body.amount,
     cid: req.params.conferenceId,
-    email: req.decodedToken.email,
     status: PaymentStatus.PROCESSING,
+    firstname: user.firstName,
+    email: user.email,
   }
   const result = await PaymentModel.newPayment(p)
 
@@ -137,10 +136,15 @@ async function joinConference(req, rsp) {
     response = null
   } else {
     delete response.authToken
-    response.firstname = req.user.firstName
-    response.middlename = req.user.middleName
-    response.lastname = req.user.lastName
+
+    response.email = user.email
+    response.phone = user.phone
+    response.firstname = user.firstName
+    response.middlename = user.middleName
+    response.lastname = user.lastName
     response.txnId = `${result[0]}`
+    response.txnHash = getRequestHash(req, response.txnId)
+    response.conferenceId = req.params.conferenceId
     status = HttpStatus.HTTP_200_OK
   }
 
@@ -162,9 +166,33 @@ async function paymentSuccess(req, rsp) {
   "status": "success",
   "hash": "a9faa65ca8113da8ecb0c8f8d41d31e90c793975c65cf620d90bc725dec192b39033210548f715d7f3e2a72d62dcc47ec73c4d8cbccebcee09db68a31c21800d"
    */
+  let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
+  let result = {}
   console.log(`paymentSuccess: ${JSON.stringify(req.body)}`)
+  const body = req.body
+  if (body.txnId === undefined) {
+    status = HttpStatus.HTTP_400_BAD_REQUEST
+    result.error = 'txnId missing'
+  } else if (body.status === undefined) {
+    status = HttpStatus.HTTP_400_BAD_REQUEST
+    result.error = 'status missing'
+  } else if (body.hash === undefined) {
+    status = HttpStatus.HTTP_400_BAD_REQUEST
+    result.error = 'hash missing'
+  } else if (body.mihpayid === undefined) {
+    status = HttpStatus.HTTP_400_BAD_REQUEST
+    result.error = 'mihpayid missing'
+  } else if (body.status === 'success' /* TODO: validate confirmation hash */) {
+    const result = await PaymentModel.paymentSuccess(body.txnId, body.mihpayid)
+    if (1 === result.length) {
+      status = HttpStatus.HTTP_200_OK
+    } else {
+      status = HttpStatus.HTTP_422_UNPROCESSABLE_ENTITY
+      result = { txnId: body.txnId }
+    }
+  }
 
-  rsp.status(HttpStatus.HTTP_200_OK).send()
+  rsp.status(status).send(result)
 }
 
 

@@ -52,11 +52,6 @@
 			</div>
 
 			<div class="dv">
-				<span class="text"><label>Transaction/Order ID:</label></span>
-				<span><input type="text" id="confid" name="confid" placeholder="Transaction ID" value="<%= conferenceId %>" /></span>
-			</div>
-
-			<div class="dv">
 				<span class="text"><label>Amount:</label></span>
 				<span><input type="text" id="amount" name="amount" placeholder="Amount" value="6.00" /></span>
 			</div>
@@ -64,16 +59,6 @@
 			<div class="dv">
 				<span class="text"><label>Product Info:</label></span>
 				<span><input type="text" id="pinfo" name="pinfo" placeholder="Product Info" value="P01,P02" /></span>
-			</div>
-
-			<div class="dv">
-				<span class="text"><label>Email ID:</label></span>
-				<span><input type="text" id="email" name="email" placeholder="Email ID" value="name@example.com" /></span>
-			</div>
-
-			<div class="dv">
-				<span class="text"><label>Mobile/Cell Number:</label></span>
-				<span><input type="text" id="mobile" name="mobile" placeholder="Mobile/Cell Number" value="7749918424" /></span>
 			</div>
 
 			<div class="dv">
@@ -88,25 +73,45 @@
 
 	<script type="text/javascript">
 		function boltResponseHandler(BOLT) {
-			console.log(BOLT.response.txnStatus)
-			if (BOLT.response.txnStatus != 'CANCEL') {
-				var fr = '<form action=\"' + $('#surl').val() + '\" method=\"post\">' +
-					'<input type=\"hidden\" name=\"key\" value=\"' + BOLT.response.key + '\" />' +
-					'<input type=\"hidden\" name=\"txnid\" value=\"' + BOLT.response.txnid + '\" />' +
-					'<input type=\"hidden\" name=\"amount\" value=\"' + BOLT.response.amount + '\" />' +
-					'<input type=\"hidden\" name=\"productinfo\" value=\"' + BOLT.response.productinfo + '\" />' +
-					'<input type=\"hidden\" name=\"firstname\" value=\"' + BOLT.response.firstname + '\" />' +
-					'<input type=\"hidden\" name=\"email\" value=\"' + BOLT.response.email + '\" />' +
-					'<input type=\"hidden\" name=\"udf5\" value=\"' + BOLT.response.udf5 + '\" />' +
-					'<input type=\"hidden\" name=\"mihpayid\" value=\"' + BOLT.response.mihpayid + '\" />' +
-					'<input type=\"hidden\" name=\"status\" value=\"' + BOLT.response.status + '\" />' +
-					'<input type=\"hidden\" name=\"hash\" value=\"' + BOLT.response.hash + '\" />' +
-					'</form>'
+			console.log(BOLT.response.status)
 
-				var form = jQuery(fr)
-				jQuery('body').append(form)
-				form.submit()
+			if (BOLT.response.txnStatus != 'CANCEL') {
+				$.ajax({
+					url: 'http://<%=ip%>:<%=port%>/api/v0/conference/paymentSuccess',
+					type: 'post',
+					data: JSON.stringify({
+						txnId: BOLT.response.txnid,
+						amount: BOLT.response.amount,
+						firstName: BOLT.response.firstname,
+						email: BOLT.response.email,
+						udf5: BOLT.response.udf5,
+						mihpayid: BOLT.response.mihpayid,
+						status: BOLT.response.status,
+						hash: BOLT.response.hash,
+				}),
+					contentType: "application/json",
+					dataType: 'json',
+				})
 			}
+
+			// if (BOLT.response.txnStatus != 'CANCEL') {
+			// 	var fr = '<form action=\"' + $('#surl').val() + '\" method=\"post\">' +
+			// 		'<input type=\"hidden\" name=\"key\" value=\"' + BOLT.response.key + '\" />' +
+			// 		'<input type=\"hidden\" name=\"txnId\" value=\"' + BOLT.response.txnid + '\" />' +
+			// 		'<input type=\"hidden\" name=\"amount\" value=\"' + BOLT.response.amount + '\" />' +
+			// 		'<input type=\"hidden\" name=\"productinfo\" value=\"' + BOLT.response.productinfo + '\" />' +
+			// 		'<input type=\"hidden\" name=\"firstname\" value=\"' + BOLT.response.firstname + '\" />' +
+			// 		'<input type=\"hidden\" name=\"email\" value=\"' + BOLT.response.email + '\" />' +
+			// 		'<input type=\"hidden\" name=\"udf5\" value=\"' + BOLT.response.udf5 + '\" />' +
+			// 		'<input type=\"hidden\" name=\"mihpayid\" value=\"' + BOLT.response.mihpayid + '\" />' +
+			// 		'<input type=\"hidden\" name=\"status\" value=\"' + BOLT.response.status + '\" />' +
+			// 		'<input type=\"hidden\" name=\"hash\" value=\"' + BOLT.response.hash + '\" />' +
+			// 		'</form>'
+
+			// 	var form = jQuery(fr)
+			// 	jQuery('body').append(form)
+			// 	form.submit()
+			// }
 		}
 
 		function boltExceptionHandler(BOLT) {
@@ -123,8 +128,9 @@
 				amount: rsp.amount,
 				firstname: rsp.firstname,
 				email: rsp.email,
-				phone: rsp.mobile,
+				phone: rsp.phone,
 				productinfo: rsp.pinfo,
+				// udf1: rsp.conferenceId,
 				udf5: rsp.udf5,
 				surl: rsp.surl,
 				furl: rsp.furl,
@@ -141,10 +147,8 @@
 				type: 'post',
 				data: JSON.stringify({
 					authToken: $('#authToken').val(),
-					conferenceId: $('#confid').val(),
+					conferenceId: <%=conferenceId%>,
 					amount: $('#amount').val(),
-					email: $('#email').val(),
-					mobile: $('#mobile').val(),
 					pinfo: $('#pinfo').val(),
 					udf5: $('#udf5').val(),
 			  }),

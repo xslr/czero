@@ -80,13 +80,6 @@ async function getAllConference(req, rsp) {}
 async function getConferenceById(req, rsp) {}
 
 
-function mkPayUPaymentRequest() {
-  return {
-
-  }
-}
-
-
 // sandbox to render payment page
 async function sboxJoinConference(req, rsp) {
   console.log(req.params)
@@ -123,6 +116,7 @@ function getRequestHash(req) {
 async function joinConference(req, rsp) {
   const hash = getRequestHash(req)
 
+  console.log(`k=${stage.merchantKey}`)
   let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
   let response = req.body
   response.key = stage.merchantKey
@@ -143,7 +137,10 @@ async function joinConference(req, rsp) {
     response = null
   } else {
     delete response.authToken
-    response.txnId = result[0]
+    response.firstname = req.user.firstName
+    response.middlename = req.user.middleName
+    response.lastname = req.user.lastName
+    response.txnId = `${result[0]}`
     status = HttpStatus.HTTP_200_OK
   }
 
@@ -152,6 +149,19 @@ async function joinConference(req, rsp) {
 
 
 async function paymentSuccess(req, rsp) {
+  /*
+  "key": "B3EAvK71",
+  "salt": "dKemnHwDbX",
+  "txnid": "1",
+  "amount": "6.00",
+  "productinfo": "P01,P02",
+  "firstname": "MyFirstName",
+  "email": "name@example.com",
+  "udf5": "BOLT_KIT_NODE_JS",
+  "mihpayid": "9083719147",
+  "status": "success",
+  "hash": "a9faa65ca8113da8ecb0c8f8d41d31e90c793975c65cf620d90bc725dec192b39033210548f715d7f3e2a72d62dcc47ec73c4d8cbccebcee09db68a31c21800d"
+   */
   console.log(`paymentSuccess: ${JSON.stringify(req.body)}`)
 
   rsp.status(HttpStatus.HTTP_200_OK).send()

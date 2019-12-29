@@ -23,7 +23,7 @@ module.exports = (router) => {
 
   router.route('/conference/:conferenceId/join')
     .get(controller.sboxJoinConference)  // FIXME: sandbox frontend for testing only
-    .post(validator.validateLoginToken, validator.validateConferenceJoinability, controller.joinConference)
+    .post(validator.validateLoginToken, validator.appendUserLogin, validator.validateConferenceJoinability, controller.joinConference)
 
   router.route('/conference/:conferenceId')
     .get(validator.validateLoginToken, controller.getConferenceById)

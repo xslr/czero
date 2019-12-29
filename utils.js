@@ -3,6 +3,8 @@ const { stage } = require('./config.js')
 const jwt = require('jsonwebtoken');
 const { knex } = require('./models/dbconnection.js')
 const ConferenceModel = require('./models/conference')
+const UserModel = require('./models/users')
+
 
 function validateLoginToken(req, rsp, next) {
   const token = req.body.authToken
@@ -44,11 +46,10 @@ async function validateConferenceJoinability(req, rsp, next) {
   const cid = req.params.conferenceId
   const result = await ConferenceModel.conferenceStatusById(cid)
 
-  console.log(`status=${result}`)
   if (ConferenceStatus.OPEN === result || ConferenceStatus.ACTIVE === result) {
     next()
   } else {
-    let error = `unknown server error.`
+    let error = 'Unknown server error.'
     let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
 
     if (ConferenceStatus.NO_CONFERENCE === result) {
@@ -64,6 +65,21 @@ async function validateConferenceJoinability(req, rsp, next) {
       reqParam: req.params,
     })
   }
+}
+
+
+async function appendUserLogin(req, rsp, next) {
+  UserModel.getUserByEmail(req.decodedToken.email)
+    .then(res => {
+      req.user = res
+      next()
+    })
+    .catch(err => {
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send({
+        error: 'Could not find the user corresponding to supplied auth token.',
+        error2: JSON.stringify(err),
+      })
+    })
 }
 
 
@@ -104,4 +120,5 @@ module.exports = {
   validateLoginToken,
   validateConferenceJoinability,
   preLaunchCheck,
+  appendUserLogin,
 }

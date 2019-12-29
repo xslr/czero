@@ -1,8 +1,7 @@
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 const { stage } = require('../config')
 
 exports.seed = function(knex) {
-  // Deletes ALL existing entries
   return knex.raw('TRUNCATE "tblUser" RESTART IDENTITY CASCADE')
     .finally(function () {
       // Inserts seed entries
@@ -15,11 +14,12 @@ exports.seed = function(knex) {
     })
     .then(function () {
       // Inserts seed entries
+      const pwHash = bcrypt.hashSync('password1', stage.saltingRounds)
       return knex('tblEmailLogin').insert([
-        { userId: 1, email: 'Alline@example.com',  pwHash: bcrypt.hashSync('password1', stage.saltingRounds) },
-        { userId: 2, email: 'Mirna@gmail.com',     pwHash: bcrypt.hashSync('password1', stage.saltingRounds) },
-        { userId: 3, email: 'Brendon@yahoo.com',   pwHash: bcrypt.hashSync('password1', stage.saltingRounds) },
-        { userId: 4, email: 'Leroy@microsoft.com', pwHash: bcrypt.hashSync('password1', stage.saltingRounds) },
+        { userId: 1, email: 'Alline@example.com',  pwHash: pwHash },
+        { userId: 2, email: 'Mirna@gmail.com',     pwHash: pwHash },
+        { userId: 3, email: 'Brendon@yahoo.com',   pwHash: pwHash },
+        { userId: 4, email: 'Leroy@microsoft.com', pwHash: pwHash },
       ])
     })
 }

@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/users');
 const validator = require('validator')
@@ -99,8 +99,7 @@ function getAuthToken(email) {
   // Create a token
   const payload = { email: email }
   const options = { expiresIn: '2d', issuer: stage.hostname }
-  const secret = process.env.JWT_SECRET
-  const token = jwt.sign(payload, secret, options)
+  const token = jwt.sign(payload, process.env.JWT_SECRET, options)
 
   return token
 }

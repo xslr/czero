@@ -42,17 +42,13 @@
 			<h3>NODE.JS BOLT Kit</h3>
 		</div>
 		<form action="#" id="payment_form">
+			<!-- hardcoded auth token for uid 1 -->
 			<input type="hidden" id="udf5" name="udf5" value="BOLT_KIT_NODE_JS" />
 			<input type="hidden" id="surl" name="surl" value="<%= surl %>" />
 			<input type="hidden" id="furl" name="furl" value="<%= furl %>" />
 			<div class="dv">
-				<span class="text"><label>Merchant Key:</label></span>
-				<span><input type="text" id="key" name="key" placeholder="Merchant Key" value="<%= key %>" /></span>
-			</div>
-
-			<div class="dv">
-				<span class="text"><label>Merchant Salt:</label></span>
-				<span><input type="text" id="salt" name="salt" placeholder="Merchant Salt" value="<%= salt %>" /></span>
+				<span class="text"><label>Auth Token:</label></span>
+				<span><input type="text" id="authToken" name="authToken" placeholder="Auth Token" value="" /></span>
 			</div>
 
 			<div class="dv">
@@ -68,11 +64,6 @@
 			<div class="dv">
 				<span class="text"><label>Product Info:</label></span>
 				<span><input type="text" id="pinfo" name="pinfo" placeholder="Product Info" value="P01,P02" /></span>
-			</div>
-
-			<div class="dv">
-				<span class="text"><label>First Name:</label></span>
-				<span><input type="text" id="fname" name="fname" placeholder="First Name" value="MyFirstName" /></span>
 			</div>
 
 			<div class="dv">
@@ -94,39 +85,13 @@
 			<div><input type="submit" value="Pay" onclick="beginPayment(); return false;" /></div>
 		</form>
 	</div>
-	<script type="text/javascript">
-		// $('#payment_form').bind('keyup blur', function () {
-		// 	$.ajax({
-		// 		url: 'http://localhost:3000/api/v0/sandbox/getHash',
-		// 		type: 'post',
-		// 		data: JSON.stringify({
-		// 			key: $('#key').val(),
-		// 			salt: $('#salt').val(),
-		// 			txnid: $('#txnid').val(),
-		// 			amount: $('#amount').val(),
-		// 			pinfo: $('#pinfo').val(),
-		// 			fname: $('#fname').val(),
-		// 			email: $('#email').val(),
-		// 			mobile: $('#mobile').val(),
-		// 			udf5: $('#udf5').val()
-		// 		}),
-		// 		contentType: "application/json",
-		// 		dataType: 'json',
-		// 		success: function (json) {
-		// 			$('#hash').val(json);
-		// 		}
-		// 	})
-		// })
-	</script>
 
 	<script type="text/javascript">
 		function boltResponseHandler(BOLT) {
 			console.log(BOLT.response.txnStatus)
 			if (BOLT.response.txnStatus != 'CANCEL') {
-				//Salt is passd here for demo purpose only. For practical use keep salt at server side only.
 				var fr = '<form action=\"' + $('#surl').val() + '\" method=\"post\">' +
 					'<input type=\"hidden\" name=\"key\" value=\"' + BOLT.response.key + '\" />' +
-					'<input type=\"hidden\" name=\"salt\" value=\"' + $('#salt').val() + '\" />' +
 					'<input type=\"hidden\" name=\"txnid\" value=\"' + BOLT.response.txnid + '\" />' +
 					'<input type=\"hidden\" name=\"amount\" value=\"' + BOLT.response.amount + '\" />' +
 					'<input type=\"hidden\" name=\"productinfo\" value=\"' + BOLT.response.productinfo + '\" />' +
@@ -149,12 +114,14 @@
 		}
 
 		function handleBeginPaymentResponse(rsp) {
+			document.forms['payment_form']['hash'].value = rsp.txnHash
+
 			bolt.launch({
-				key: rsp.merchantKey,
-				txnid: rsp.conferenceId,
-				hash: rsp.transactionHash,
+				key: rsp.key,
+				txnid: rsp.txnId,
+				hash: rsp.txnHash,
 				amount: rsp.amount,
-				firstname: rsp.fname,
+				firstname: rsp.firstname,
 				email: rsp.email,
 				phone: rsp.mobile,
 				productinfo: rsp.pinfo,
@@ -173,13 +140,13 @@
 				url: 'http://<%=ip%>:<%=port%>/api/v0/conference/<%=conferenceId%>/join',
 				type: 'post',
 				data: JSON.stringify({
+					authToken: $('#authToken').val(),
 					conferenceId: $('#confid').val(),
 					amount: $('#amount').val(),
-					pinfo: $('#pinfo').val(),
-					fname: $('#fname').val(),
 					email: $('#email').val(),
 					mobile: $('#mobile').val(),
-					udf5: $('#udf5').val()
+					pinfo: $('#pinfo').val(),
+					udf5: $('#udf5').val(),
 			  }),
 				contentType: "application/json",
 				dataType: 'json',

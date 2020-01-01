@@ -11,7 +11,7 @@ const routes = require('./routes/index.js');
 const { stage, environment } = require('./config.js')
 const { preLaunchCheck } = require('./utils.js')
 
-// TODO: enable cors for selected domains before going live
+// TODO: enable cors for selected domains only before going live
 app.use(cors())
 
 app.use(bodyParser.json());

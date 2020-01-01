@@ -1,14 +1,17 @@
 const ResultCode = Object.freeze({
-  'ERR_UNKNOWN':1,
-  'ERR_ACCOUNT_EXISTS':2,
-  'OK_LOGIN_SUCCESS': 3,
-  'ERR_INCORRECT_LOGIN': 4,
-  'OK_ACCOUNT_CREATED': 5,
-  'ERR_UNKNOWN_USER_ID': 6,
-  'ERR_UNKNOWN_USER_EMAIL': 7,
-  'ERR_AUTH_TOKEN_MISSING': 8,
-  'ERR_MISSING_DATA': 9,
-  'ERR_INVALID_ROLE': 10,
+  'OK': 1,
+  'ERR_UNKNOWN': 2,
+  'ERR_ACCOUNT_EXISTS': 3,
+  'OK_LOGIN_SUCCESS': 4,
+  'ERR_INCORRECT_LOGIN': 5,
+  'OK_ACCOUNT_CREATED': 6,
+  'ERR_UNKNOWN_USER_ID': 7,
+  'ERR_UNKNOWN_USER_EMAIL': 8,
+  'ERR_AUTH_TOKEN_MISSING': 9,
+  'ERR_MISSING_DATA': 10,
+  'ERR_INVALID_ROLE': 11,
+  'ERR_INVALID_CONFERENCE': 12,
+  'ERR_DUPLICATE_ENTRY': 13,
 })
 
 const HttpStatus = Object.freeze({
@@ -41,14 +44,22 @@ const ConferenceStatus = Object.freeze({
   'CLOSED': 3,
 })
 
-function paymentStatusAsString(status) {
-  return Object.keys(PaymentStatus)[status]
+const ConferenceRole = Object.freeze({
+  'program_chair': 0,
+  'attendee': 1,
+  'reviewer': 2,
+  'author': 3,
+})
+
+function enumAsString(type, val) {
+  return Object.keys(type)[val];
 }
 
 module.exports = {
+  enumAsString,
   ResultCode,
   HttpStatus,
   PaymentStatus,
   ConferenceStatus,
-  paymentStatusAsString,
+  ConferenceRole,
 }

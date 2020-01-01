@@ -11,7 +11,7 @@ async function newPayment(payment) {
       uid: user.id,
       cid: payment.cid,
       amount: payment.amount,
-      status: Constants.paymentStatusAsString(payment.status),
+      status: Constants.enumAsString(Constants.PaymentStatus, payment.status),
     }).returning('id')
     .catch(err => {
       console.error(`Error while inserting: ${err}`)

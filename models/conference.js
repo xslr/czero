@@ -1,13 +1,10 @@
 const { knex } = require('../models/dbconnection')
-const { ResultCode } = require('../result_code')
 const UserModel = require('./users')
-const {ConferenceStatus}  = require('../constants')
-
-const ConferenceRoles = ['programChair', 'attendee', 'reviewer']
+const { ConferenceStatus, ConferenceRole, enumAsString, ResultCode }  = require('../constants')
 
 
 function isValidRole(role) {
-  return ConferenceRoles.includes(role)
+  return Object.values(ConferenceRole).includes(role)
 }
 
 
@@ -17,29 +14,47 @@ async function create(conf) {
 }
 
 
-async function assignRole(confId, email, role) {
+async function assignRoleByUserId(confId, userId, role) {
+  if (undefined == confId) {
+    return ResultCode.ERR_INVALID_CONFERENCE
+  }
+  if (undefined == userId) {
+    return ResultCode.ERR_UNKNOWN_USER_ID
+  }
   if (!isValidRole(role)) {
     return ResultCode.ERR_INVALID_ROLE
-  }
-
-  const userId = await UserModel.getUserByEmail(email)
-
-  if (!userId) {
-    return false
   }
 
   return knex('tblConferenceMember')
     .insert({
       userId: userId,
       conferenceId: confId,
-      role: role,
-    })
+      role: enumAsString(ConferenceRole, role),
+    }, ['userId', 'conferenceId'])
     .then(res => {
-      return res.rowCount == 1
+      if (1 === res.length) {
+        return ResultCode.OK
+      } else {
+        return ResultCode.ERR_UNKNOWN
+      }
     })
     .catch(err => {
-      return err
+      console.error(`Error adding conference role: ${JSON.stringify(err)}`)
+      if (undefined === err) {
+        return ResultCode.ERR_UNKNOWN
+      } else if (23505 === Number(err.code)) {
+        return ResultCode.ERR_DUPLICATE_ENTRY
+      } else {
+        return ResultCode.ERR_UNKNOWN
+      }
     })
+}
+
+
+async function assignRoleByEmail(confId, email, role) {
+  const userId = await UserModel.getUserByEmail(email)
+
+  return await assignRoleByUid(confId, userId, role)
 }
 
 
@@ -82,7 +97,8 @@ async function conferenceStatusById(cid) {
 
 module.exports = {
   create,
-  assignRole,
+  assignRoleByEmail,
+  assignRoleByUserId,
   read,
   readAll,
   update,

@@ -2,7 +2,7 @@ const ConferenceModel = require('../models/conference');
 const PaymentModel = require('../models/payment')
 
 const { mkResult } = require('../result_code')
-const { HttpStatus, PaymentStatus } = require('../constants')
+const { HttpStatus, PaymentStatus, ConferenceRole, ResultCode } = require('../constants')
 const crypto = require('crypto')
 
 const { stage } = require('../config')
@@ -166,33 +166,47 @@ async function paymentSuccess(req, rsp) {
   "status": "success",
   "hash": "a9faa65ca8113da8ecb0c8f8d41d31e90c793975c65cf620d90bc725dec192b39033210548f715d7f3e2a72d62dcc47ec73c4d8cbccebcee09db68a31c21800d"
    */
-  let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
-  let result = {}
+  let httpStatus = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
+  let httpResult = {}
   console.log(`paymentSuccess: ${JSON.stringify(req.body)}`)
   const body = req.body
   if (body.txnId === undefined) {
-    status = HttpStatus.HTTP_400_BAD_REQUEST
-    result.error = 'txnId missing'
+    httpStatus = HttpStatus.HTTP_400_BAD_REQUEST
+    httpResult.error = 'txnId missing'
   } else if (body.status === undefined) {
-    status = HttpStatus.HTTP_400_BAD_REQUEST
-    result.error = 'status missing'
+    httpStatus = HttpStatus.HTTP_400_BAD_REQUEST
+    httpResult.error = 'status missing'
   } else if (body.hash === undefined) {
-    status = HttpStatus.HTTP_400_BAD_REQUEST
-    result.error = 'hash missing'
+    httpStatus = HttpStatus.HTTP_400_BAD_REQUEST
+    httpResult.error = 'hash missing'
   } else if (body.mihpayid === undefined) {
-    status = HttpStatus.HTTP_400_BAD_REQUEST
-    result.error = 'mihpayid missing'
-  } else if (body.status === 'success' /* TODO: validate confirmation hash */) {
-    const result = await PaymentModel.paymentSuccess(body.txnId, body.mihpayid)
+    httpStatus = HttpStatus.HTTP_400_BAD_REQUEST
+    httpResult.error = 'mihpayid missing'
+  } else if (body.status === 'success' /* && TODO: validate confirmation hash */) {
+    let result = await PaymentModel.paymentSuccess(body.txnId, body.mihpayid)
+    const role = ConferenceRole.attendee
     if (1 === result.length) {
-      status = HttpStatus.HTTP_200_OK
+      const assignResult = await ConferenceModel.assignRoleByUserId(result[0].cid, result[0].uid, role)
+      if (ResultCode.OK === assignResult) {
+        httpStatus = HttpStatus.HTTP_200_OK
+        httpResult = { cid: result[0].cid, role: role }
+      } else {
+        // error handling
+        if (ResultCode.ERR_DUPLICATE_ENTRY === assignResult) {
+          httpStatus = HttpStatus.HTTP_422_UNPROCESSABLE_ENTITY
+          httpResult = { error: 'The user is already assigned that role in the conference.' }
+        } else {
+          httpStatus = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
+          console.log(`Could not add user to conference. ar=${assignResult} r=${JSON.stringify(result[0])}`)
+        }
+      }
     } else {
-      status = HttpStatus.HTTP_422_UNPROCESSABLE_ENTITY
-      result = { txnId: body.txnId }
+      httpStatus = HttpStatus.HTTP_422_UNPROCESSABLE_ENTITY
+      httpResult = { txnId: body.txnId }
     }
   }
 
-  rsp.status(status).send(result)
+  rsp.status(httpStatus).send(httpResult)
 }
 
 

@@ -1,0 +1,541 @@
+openapi: 3.0.1
+info:
+  version: "1.0.0"
+  title: Conference API
+  description: This is an API to create and manage conferences.
+
+
+paths:
+  /user:
+    post:
+      summary: Create a new user
+      operationId: createUser
+      security: []
+      requestBody:
+        required: true
+        description: A JSON object that contains the user's email and password. Other user data is optional.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/LoginCredential'
+                - $ref: '#/components/schemas/User'
+      responses:
+        "201":
+          $ref: '#/components/responses/201'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    description: email address of the created user
+        "422":
+          $ref: '#/components/responses/422'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Modify user data of the current user.
+      operationId: alterUser
+      security:
+        - AuthToken: []
+      requestBody:
+        required: true
+        description: A JSON object that contains the changed user data fields.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "403":
+          $ref: '#/components/responses/403'
+
+    get:
+      summary: Get user data of current user determined by the AuthToken.
+      operationId: getUserData
+      security:
+        - AuthToken: []
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # TODO: logout
+  /login:
+    post:
+      summary: Login using a registered user account.
+      description: Validates given credentials and returns a jwt wuth token which must be supplied when invoking secured endpoints.
+      operationId: loginUser
+      requestBody:
+        required: true
+        description: A JSON object that contains the user's email and password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginCredential'
+      responses:
+        "201":
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        "403":
+          description: Invalid credentials.
+
+  /conference:
+    # TODO: get
+    post:
+      summary: Create a new conference.
+      operationId: createConference
+      security:
+        - AuthToken: [Operator]
+      requestBody:
+        required: true
+        description: A JSON object that contains conference data. The authtoken must be of a user in the operators group.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conference'
+      responses:
+        "201":
+          $ref: '#/components/responses/201'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conferenceId:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  startDate:
+                    type: string
+                    format: date-time
+                  lastDate:
+                    type: string
+                    format: date-time
+        "422":
+          $ref: '#/components/responses/422'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Alter existing conference.
+      operationId: alterConference
+      security:
+        - AuthToken: [Operator, ConferenceChair]
+      requestBody:
+        required: true
+        description: A JSON object that contains conference data.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ConferenceId'
+                - $ref: '#/components/schemas/Conference'
+      responses:
+        "201":
+          $ref: '#/components/responses/201'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conferenceId:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  startDate:
+                    type: string
+                    format: date-time
+                  lastDate:
+                    type: string
+                    format: date-time
+        "422":
+          $ref: '#/components/responses/422'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /paper:
+    get:
+      summary: Get all papers created by current user.
+      operationId: getAllPapers
+      security:
+        - AuthToken: []
+      responses:
+        "200":
+          description: An array of paper data objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Paper'
+        "403":
+          $ref: '#/components/responses/403'
+
+    post:
+      summary: Create a new paper.
+      operationId: createPaper
+      security:
+        - AuthToken: []
+      requestBody:
+        required: true
+        description: A JSON object that contains paper data. A conference id of a conference open for submission is required.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ConferenceId'
+                - $ref: '#/components/schemas/Paper'
+      responses:
+        "201":
+          $ref: '#/components/responses/201'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conferenceId:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  startDate:
+                    type: string
+                    format: date-time
+                  lastDate:
+                    type: string
+                    format: date-time
+        "422":
+          $ref: '#/components/responses/422'
+
+  /paper/{paperId}:
+    # TODO: delete
+    get:
+      summary: Get paper details
+      operationId: getPaperData
+      parameters:
+        - in: path
+          name: paperId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Id of the paper to get.
+      security:
+        - AuthToken: []
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "403":
+          $ref: '#/components/responses/403'
+    # TODO: patch
+    post:
+      summary: Create a new revision of a paper.
+      operationId: createPaperRevision
+      parameters:
+        - in: path
+          name: paperId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Id of the paper where a new revision is to be uploaded.
+      security:
+        - AuthToken: []
+      requestBody:
+        required: true
+        description: A JSON object that contains the new version of the document.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperRevision'
+      responses:
+        "201":
+          $ref: '#/components/responses/201'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paper:
+                    $ref: '#/components/schemas/Paper'
+                  revisionNumber:
+                    type: integer
+                    description: Revision number of the newly uploaded revision of the paper.
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "422":
+          $ref: '#/components/responses/422'
+
+
+components:
+  schemas:
+    Name:
+      description: A person's name
+      required:
+        - firstName
+        - lastName
+      properties:
+        firstName:
+          type: string
+        middleName:
+          type: string
+        lastName:
+          type: string
+
+    Address:
+      type: object
+      required:
+        - addressLine1
+        - city
+        - zipCode
+        - state
+        - country
+      properties:
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+        addressLine3:
+          type: string
+        city:
+          type: string
+        zipCode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human readable description of the error.
+    LoginCredential:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+
+    UserId:
+      type: string
+      format: uuid
+
+    User:
+      type: object
+      properties:
+        userId:
+          $ref: '#/components/schemas/UserId'
+        name:
+          $ref: '#/components/schemas/Name'
+        address:
+          $ref: '#/components/schemas/Address'
+        phone:
+          type: string
+        creationTimestamp:
+          type: string
+          format: date-time
+        lastLogin:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - registered
+            - activated
+            - blocked
+
+    ConferenceId:
+      type: string
+      format: uuid
+
+    Conference:
+      type: object
+      required:
+        - title
+        - startDate
+        - lastDate
+        - startPaperSubmissionDate
+        - finalPaperSubmissionDate
+        - paperSelectionDate
+        - finalDraftSubmissionDate
+        - venue
+      properties:
+        conferenceId:
+          $ref: '#/components/schemas/ConferenceId'
+        title:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        lastDate:
+          type: string
+          format: date-time
+        startPaperSubmissionDate:
+          type: string
+          format: date-time
+        finalPaperSubmissionDate:
+          type: string
+          format: date-time
+        paperSelectionDate:
+          type: string
+          format: date-time
+        finalDraftSubmissionDate:
+          type: string
+          format: date-time
+        venue:
+          $ref: '#/components/schemas/Address'
+        conferenceChair:
+          type: string
+        callForPapers:
+          type: string
+        hidden:
+          type: boolean
+
+    PaperId:
+      type: string
+      format: uuid
+
+    Paper:
+      type: object
+      required:
+        - title
+        - abstract
+        - authors
+        - presenter
+        - uploader
+      properties:
+        paperId:
+          $ref: '#/components/schemas/PaperId'
+        title:
+          type: string
+        abstract:
+          type: string
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+        presenterId:
+          $ref: '#/components/schemas/UserId'
+        uploaderId:
+          $ref: '#/components/schemas/UserId'
+        currentRevision:
+          type: integer
+
+    PaperRevision:
+      description: Represents a specific revision of a paper.
+      type: object
+      required:
+        - paperId
+        - revisionNumber
+        - docType
+        - docData
+      properties:
+        paperId:
+          $ref: '#/components/schemas/PaperId'
+        revisionNumber:
+          type: integer
+        docBlob:
+          type: string
+          format: binary
+        docType:
+          type: string
+          format: mimeType
+    Author:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        email:
+          type: string
+          format: email
+    
+    AuthToken:
+      type: string
+      format: uuid
+
+
+  securitySchemes:
+    AuthToken:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+
+  responses:
+    "200":
+      description: Requested resource was found. Depending on the REST verb (get or patch),
+                   provided credentials are sufficient to access/alter the resource. The content consists of..
+                   *GET* a copy of the requested resource.
+                   *PATCH* a copy of the altered resource.
+
+    "201":
+      description: Requested resource was created. The content consists of a summarised form of the created resource.
+                   It includes a unique identifier to access the newly created resource.
+
+    "403":
+      description: Missing or invalid authentication token. An authentication token is required to access the resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    "404":
+      description: One or more of the indicated resources is invalid. This means that either it does not exist
+                   or the provided credentials do not have access to the resource. Details can be found in the response body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    "422":
+      description: One or more of the provided request parameters is invalid. Details can be found in the response body.
+                   In response to a POST request, this means that the requested resource was not created.
+                   In response to a PATCH request, this means that the requested resource was not altered.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

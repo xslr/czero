@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  version: "1.0.0"
+  version: '1.0.0'
   title: Conference API
   description: This is an API to create and manage conferences.
 
@@ -10,8 +10,8 @@ security:
 
 
 servers:
-  - url: "https://rnm.sg/conference/api/v0"
-    description: "Research and Methods conference API server"
+  - url: 'https://rnm.sg/conference/api/v0'
+    description: Research and Methods conference API server'
 
 
 paths:
@@ -30,7 +30,7 @@ paths:
                 - $ref: '#/components/schemas/LoginCredential'
                 - $ref: '#/components/schemas/User'
       responses:
-        "201":
+        201:
           $ref: '#/components/responses/201'
           content:
             application/json:
@@ -41,7 +41,7 @@ paths:
                     type: string
                     format: email
                     description: email address of the created user
-        "422":
+        422:
           $ref: '#/components/responses/422'
           content:
             application/json:
@@ -61,13 +61,13 @@ paths:
             schema:
               $ref: '#/components/schemas/User'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        "403":
+        403:
           $ref: '#/components/responses/403'
 
     get:
@@ -76,15 +76,15 @@ paths:
       security:
         - AuthToken: []
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        "401":
+        401:
           $ref: '#/components/responses/401'
-        "403":
+        403:
           $ref: '#/components/responses/403'
 
   /logout:
@@ -93,17 +93,18 @@ paths:
       description: Deauthorizes a logged in user. The corresponding auth credential is no longer valid.
       operationId: logoutUser
       responses:
-        "200":
+        200:
           description: Logged out.
-        "401":
+        401:
           $ref: '#/components/responses/401'
-        "403":
+        403:
           $ref: '#/components/responses/403'
 
   /login:
     post:
       summary: Login using a registered user account
-      description: Validates given credentials and returns a jwt wuth token which must be supplied when invoking secured endpoints.
+      description: 'Validates given credentials and returns a jwt auth
+                    token which must be supplied when invoking secured endpoints.'
       operationId: loginUser
       security: []
       requestBody:
@@ -114,13 +115,13 @@ paths:
             schema:
               $ref: '#/components/schemas/LoginCredential'
       responses:
-        "201":
+        201:
           description: Login successful.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthToken'
-        "403":
+        403:
           description: Invalid credentials.
 
   /conference:
@@ -131,13 +132,14 @@ paths:
         - AuthToken: [Operator]
       requestBody:
         required: true
-        description: A JSON object that contains conference data. The authtoken must be of a user in the operators group.
+        description: 'A JSON object that contains conference data.
+                      The authtoken must correspond to a user in the operators group.'
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Conference'
       responses:
-        "201":
+        201:
           $ref: '#/components/responses/201'
           content:
             application/json:
@@ -155,11 +157,11 @@ paths:
                   lastDate:
                     type: string
                     format: date-time
-        '401':
+        401:
           $ref: '#/components/responses/401'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        "422":
+        422:
           $ref: '#/components/responses/422'
           content:
             application/json:
@@ -180,7 +182,7 @@ paths:
       operationId: getConferenceData
       security: []
       responses:
-        "200":
+        200:
           description: An object containing details about the conference.
           content:
             application/json:
@@ -188,7 +190,7 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/Conference'
                   - $ref: '#/components/schemas/ConferenceId'
-        "404":
+        404:
           $ref: '#/components/responses/404'
     patch:
       summary: Alter existing conference
@@ -203,7 +205,7 @@ paths:
             schema:
               $ref: '#/components/schemas/Conference'
       responses:
-        "201":
+        201:
           $ref: '#/components/responses/201'
           content:
             application/json:
@@ -221,11 +223,11 @@ paths:
                   lastDate:
                     type: string
                     format: date-time
-        '401':
+        401:
           $ref: '#/components/responses/401'
-        '403':
+        403:
           $ref: '#/components/responses/403'
-        "422":
+        422:
           $ref: '#/components/responses/422'
           content:
             application/json:
@@ -235,13 +237,15 @@ paths:
   /conference/{conferenceId}/join:
     post:
       summary: Join a conference
-      description: Join the specified conference as the current user. The membership type should be indicated in request body.
+      description: 'Join the specified conference as the current user.
+                    The membership type should be indicated in request body.'
       operationId: joinConference
       security:
         - AuthToken: []
       requestBody:
         required: true
-        description: A JSON object that contains paper data. A conference id of a conference open for submission is required.
+        description: 'A JSON object that contains paper data.
+                      A conference id of a conference open for submission is required.'
         content:
           application/json:
             schema:
@@ -249,7 +253,7 @@ paths:
                 - $ref: '#/components/schemas/ConferenceId'
                 - $ref: '#/components/schemas/Paper'
       responses:
-        "201":
+        201:
           $ref: '#/components/responses/201'
           content:
             application/json:
@@ -267,9 +271,9 @@ paths:
                   lastDate:
                     type: string
                     format: date-time
-        '401':
+        401:
           $ref: '#/components/responses/401'
-        "422":
+        422:
           $ref: '#/components/responses/422'
 
 
@@ -280,7 +284,7 @@ paths:
       security:
         - AuthToken: []
       responses:
-        "200":
+        200:
           description: An array of paper data objects.
           content:
             application/json:
@@ -288,9 +292,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Paper'
-        "401":
+        401:
           $ref: '#/components/responses/401'
-        "403":
+        403:
           $ref: '#/components/responses/403'
 
     post:
@@ -300,7 +304,8 @@ paths:
         - AuthToken: []
       requestBody:
         required: true
-        description: A JSON object that contains paper data. A conference id of a conference open for submission is required.
+        description: 'A JSON object that contains paper data.
+                      A conference id of a conference open for submission is required.'
         content:
           application/json:
             schema:
@@ -308,7 +313,7 @@ paths:
                 - $ref: '#/components/schemas/ConferenceId'
                 - $ref: '#/components/schemas/Paper'
       responses:
-        "201":
+        201:
           $ref: '#/components/responses/201'
           content:
             application/json:
@@ -326,9 +331,9 @@ paths:
                   lastDate:
                     type: string
                     format: date-time
-        '401':
+        401:
           $ref: '#/components/responses/401'
-        "422":
+        422:
           $ref: '#/components/responses/422'
 
   /paper/{paperId}:
@@ -345,13 +350,13 @@ paths:
       security:
         - AuthToken: []
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        "404":
+        404:
           $ref: '#/components/responses/404'
     post:
       summary: Create a new revision of a paper
@@ -366,7 +371,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PaperRevision'
       responses:
-        "201":
+        201:
           $ref: '#/components/responses/201'
           content:
             application/json:
@@ -378,11 +383,11 @@ paths:
                   revisionNumber:
                     type: integer
                     description: Revision number of the newly uploaded revision of the paper.
-        "403":
+        403:
           $ref: '#/components/responses/403'
-        "404":
+        404:
           $ref: '#/components/responses/404'
-        "422":
+        422:
           $ref: '#/components/responses/422'
     patch:
       summary: Alter an existing paper
@@ -397,13 +402,13 @@ paths:
             schema:
               $ref: '#/components/schemas/Paper'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Paper'
-        "403":
+        403:
           $ref: '#/components/responses/403'
     delete:
       summary: Delete a paper
@@ -412,9 +417,9 @@ paths:
       security:
         - AuthToken: []
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
-        "403":
+        403:
           $ref: '#/components/responses/403'
 
 
@@ -432,7 +437,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PaymentResult'
       responses:
-        "201":
+        201:
           $ref: '#/components/responses/201'
           content:
             application/json:
@@ -444,11 +449,11 @@ paths:
                   revisionNumber:
                     type: integer
                     description: Revision number of the newly uploaded revision of the paper.
-        "403":
+        403:
           $ref: '#/components/responses/403'
-        "404":
+        404:
           $ref: '#/components/responses/404'
-        "422":
+        422:
           $ref: '#/components/responses/422'
 
 
@@ -467,7 +472,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PayuWebhookPldPaymentSuccess'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
 
 
@@ -486,7 +491,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PayuWebhookPldPaymentFailure'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
 
 
@@ -505,7 +510,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PayuWebhookPldRefundInitiated'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
 
 
@@ -524,7 +529,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PayuWebhookPldRefundCompleted'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
 
 
@@ -543,7 +548,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PayuWebhookPldDisputeInitiated'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
 
 
@@ -562,7 +567,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PayuWebhookPldDisputeResolved'
       responses:
-        "200":
+        200:
           $ref: '#/components/responses/200'
 
 
@@ -851,7 +856,7 @@ components:
           type: string
         udf3:
           type: string
-        
+
 
     PayuWebhookPldPaymentFailure:
       description: Response body of payu payment success notification webhook.
@@ -1108,7 +1113,7 @@ components:
 
 
   responses:
-    "200":
+    200:
       description:
         'Requested resource was found. Depending on the REST verb (get or patch), provided credentials are sufficient
         to access/alter the resource. The content consists of::
@@ -1116,12 +1121,12 @@ components:
           *PATCH* a copy of the altered resource.
           *DELETE* empty response body'
 
-    "201":
+    201:
       description:
         'Requested resource was created. The content consists of a summarised form of the created resource.
         It includes a unique identifier to access the newly created resource.'
 
-    "401":
+    401:
       description:
         'Missing authentication token. An authentication token is required to access the resource.
         A 404 maybe generated when accessing a protected resource without credentials if presence
@@ -1131,7 +1136,7 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-    "403":
+    403:
       description:
         'Missing or invalid authentication token. An authentication token is required to access the resource.
         A 404 maybe generated when accessing a protected resource with invalid credentials if presence
@@ -1141,7 +1146,7 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-    "404":
+    404:
       description:
         'One or more of the indicated resources is invalid. This means that either it does not exist
         or the provided credentials do not have access to the resource. Details can be found in the response body.'
@@ -1150,7 +1155,7 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-    "422":
+    422:
       description:
         'One or more of the provided request parameters is invalid. Details can be found in the response body.
         In response to a POST request, this means that the requested resource was not created.

@@ -5,6 +5,15 @@ info:
   description: This is an API to create and manage conferences.
 
 
+security:
+  - AuthToken: []
+
+
+servers:
+  - url: "https://rnm.sg/conference/api/v0"
+    description: "Research and Methods conference API server"
+
+
 paths:
   /user:
     post:
@@ -13,7 +22,7 @@ paths:
       security: []
       requestBody:
         required: true
-        description: A JSON object that contains the user's email and password. Other user data is optional.
+        description: A JSON object that contains the user's email and password. Other user data is optional
         content:
           application/json:
             schema:
@@ -40,7 +49,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
     patch:
-      summary: Modify user data of the current user.
+      summary: Modify data of current user
       operationId: alterUser
       security:
         - AuthToken: []
@@ -62,7 +71,7 @@ paths:
           $ref: '#/components/responses/403'
 
     get:
-      summary: Get user data of current user determined by the AuthToken.
+      description: Get user data of current user determined by the AuthToken
       operationId: getUserData
       security:
         - AuthToken: []
@@ -73,13 +82,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          $ref: '#/components/responses/403'
 
-  # TODO: logout
+  /logout:
+    post:
+      summary: Logout current user
+      description: Deauthorizes a logged in user. The corresponding auth credential is no longer valid.
+      operationId: logoutUser
+      responses:
+        "200":
+          description: Logged out.
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          $ref: '#/components/responses/403'
+
   /login:
     post:
-      summary: Login using a registered user account.
+      summary: Login using a registered user account
       description: Validates given credentials and returns a jwt wuth token which must be supplied when invoking secured endpoints.
       operationId: loginUser
+      security: []
       requestBody:
         required: true
         description: A JSON object that contains the user's email and password.
@@ -98,9 +124,8 @@ paths:
           description: Invalid credentials.
 
   /conference:
-    # TODO: get
     post:
-      summary: Create a new conference.
+      summary: Create a new conference
       operationId: createConference
       security:
         - AuthToken: [Operator]
@@ -130,6 +155,10 @@ paths:
                   lastDate:
                     type: string
                     format: date-time
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
         "422":
           $ref: '#/components/responses/422'
           content:
@@ -137,8 +166,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /conference/{conferenceId}:
+    parameters:
+      - in: path
+        name: conferenceId
+        schema:
+          $ref: '#/components/parameters/ConferenceIdParam'
+        required: true
+        description: Id of the conference to be altered
+    get:
+      summary: Get conference data
+      description: Get details of the conference indicated by conference id
+      operationId: getConferenceData
+      security: []
+      responses:
+        "200":
+          description: An object containing details about the conference.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Conference'
+                  - $ref: '#/components/schemas/ConferenceId'
+        "404":
+          $ref: '#/components/responses/404'
     patch:
-      summary: Alter existing conference.
+      summary: Alter existing conference
       operationId: alterConference
       security:
         - AuthToken: [Operator, ConferenceChair]
@@ -148,9 +201,7 @@ paths:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/ConferenceId'
-                - $ref: '#/components/schemas/Conference'
+              $ref: '#/components/schemas/Conference'
       responses:
         "201":
           $ref: '#/components/responses/201'
@@ -170,6 +221,10 @@ paths:
                   lastDate:
                     type: string
                     format: date-time
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
         "422":
           $ref: '#/components/responses/422'
           content:
@@ -177,10 +232,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /conference/{conferenceId}/join:
+    post:
+      summary: Join a conference
+      description: Join the specified conference as the current user. The membership type should be indicated in request body.
+      operationId: joinConference
+      security:
+        - AuthToken: []
+      requestBody:
+        required: true
+        description: A JSON object that contains paper data. A conference id of a conference open for submission is required.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ConferenceId'
+                - $ref: '#/components/schemas/Paper'
+      responses:
+        "201":
+          $ref: '#/components/responses/201'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conferenceId:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  startDate:
+                    type: string
+                    format: date-time
+                  lastDate:
+                    type: string
+                    format: date-time
+        '401':
+          $ref: '#/components/responses/401'
+        "422":
+          $ref: '#/components/responses/422'
+
 
   /paper:
     get:
-      summary: Get all papers created by current user.
+      summary: Get all papers created by current user
       operationId: getAllPapers
       security:
         - AuthToken: []
@@ -193,11 +288,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Paper'
+        "401":
+          $ref: '#/components/responses/401'
         "403":
           $ref: '#/components/responses/403'
 
     post:
-      summary: Create a new paper.
+      summary: Create a new paper
       operationId: createPaper
       security:
         - AuthToken: []
@@ -229,22 +326,22 @@ paths:
                   lastDate:
                     type: string
                     format: date-time
+        '401':
+          $ref: '#/components/responses/401'
         "422":
           $ref: '#/components/responses/422'
 
   /paper/{paperId}:
-    # TODO: delete
+    parameters:
+      - in: path
+        name: paperId
+        schema:
+          $ref: '#/components/parameters/PaperIdParam'
+        required: true
+        description: Id of the paper to get (HTTP GET) or to which a new revision is to be uploaded (HTTP_POST).
     get:
       summary: Get paper details
       operationId: getPaperData
-      parameters:
-        - in: path
-          name: paperId
-          schema:
-            type: string
-            format: uuid
-          required: true
-          description: Id of the paper to get.
       security:
         - AuthToken: []
       responses:
@@ -254,20 +351,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        "403":
-          $ref: '#/components/responses/403'
-    # TODO: patch
+        "404":
+          $ref: '#/components/responses/404'
     post:
-      summary: Create a new revision of a paper.
+      summary: Create a new revision of a paper
       operationId: createPaperRevision
-      parameters:
-        - in: path
-          name: paperId
-          schema:
-            type: string
-            format: uuid
-          required: true
-          description: Id of the paper where a new revision is to be uploaded.
       security:
         - AuthToken: []
       requestBody:
@@ -296,6 +384,187 @@ paths:
           $ref: '#/components/responses/404'
         "422":
           $ref: '#/components/responses/422'
+    patch:
+      summary: Alter an existing paper
+      operationId: alterPaper
+      security:
+        - AuthToken: []
+      requestBody:
+        required: true
+        description: A JSON object that contains the changed paper data fields.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Paper'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paper'
+        "403":
+          $ref: '#/components/responses/403'
+    delete:
+      summary: Delete a paper
+      description: Delete an existing paper. Request body is ignored and can be empty.
+      operationId: deletePaper
+      security:
+        - AuthToken: []
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+        "403":
+          $ref: '#/components/responses/403'
+
+
+  /payment/result:
+    post:
+      summary: Record the result of a payment transaction.
+      operationId: processPaymentResult
+      security:
+        - AuthToken: []
+      requestBody:
+        required: true
+        description: A JSON object that contains the payment result.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentResult'
+      responses:
+        "201":
+          $ref: '#/components/responses/201'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paper:
+                    $ref: '#/components/schemas/Paper'
+                  revisionNumber:
+                    type: integer
+                    description: Revision number of the newly uploaded revision of the paper.
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "422":
+          $ref: '#/components/responses/422'
+
+
+  /3pty/payu/paymentSuccess:
+    post:
+      summary: PayU payment success webhook
+      description: Process payment success webhook notification received direct from PayU servers.
+               See https://developer.payumoney.com/general/#webhooks
+      operationId: processPayuWebhookPaymentSuccess
+      security: []
+      requestBody:
+        required: true
+        description: A JSON object that contains payment success data specified by PayU api.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayuWebhookPldPaymentSuccess'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+
+
+  /3pty/payu/paymentFailure:
+    post:
+      summary: PayU payment failure webhook
+      description: Process payment failure webhook notification received direct from PayU servers.
+                   See https://developer.payumoney.com/general/#webhooks
+      operationId: processPayuWebhookPaymentFailure
+      security: []
+      requestBody:
+        required: true
+        description: A JSON object that contains payment failure data specified by PayU api.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayuWebhookPldPaymentFailure'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+
+
+  /3pty/payu/refundInitiate:
+    post:
+      summary: PayU initiate refund webhook
+      description: Process refund initiated webhook notification received direct from PayU servers.
+                   See https://developer.payumoney.com/general/#webhooks
+      operationId: processPayuWebhookRefundInitiate
+      security: []
+      requestBody:
+        required: true
+        description: A JSON object that contains refund initiated data specified by PayU api.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayuWebhookPldRefundInitiated'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+
+
+  /3pty/payu/refundComplete:
+    post:
+      summary: PayU complete refund webhook
+      description: Process refund completed webhook notification received direct from PayU servers.
+                   See https://developer.payumoney.com/general/#webhooks
+      operationId: processPayuWebhookRefundCompleted
+      security: []
+      requestBody:
+        required: true
+        description: A JSON object that contains refund completed data specified by PayU api.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayuWebhookPldRefundCompleted'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+
+
+  /3pty/payu/disputeInitiate:
+    post:
+      summary: PayU initiate dispute webhook
+      description: Process dispute initiated webhook notification received direct from PayU servers.
+                   See https://developer.payumoney.com/general/#webhooks
+      operationId: processPayuWebhookDisputeInitiate
+      security: []
+      requestBody:
+        required: true
+        description: A JSON object that contains dispute initiated data specified by PayU api.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayuWebhookPldDisputeInitiated'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+
+
+  /3pty/payu/disputeResolved:
+    post:
+      summary: PayU resolve dispute webhook
+      description: Process dispute resolved webhook notification received direct from PayU servers.
+                   See https://developer.payumoney.com/general/#webhooks
+      operationId: processPayuWebhookDisputeResolved
+      security: []
+      requestBody:
+        required: true
+        description: A JSON object that contains dispute resolved data specified by PayU api.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayuWebhookPldDisputeResolved'
+      responses:
+        "200":
+          $ref: '#/components/responses/200'
+
 
 
 components:
@@ -386,8 +655,13 @@ components:
             - blocked
 
     ConferenceId:
-      type: string
-      format: uuid
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
 
     Conference:
       type: object
@@ -492,49 +766,395 @@ components:
         email:
           type: string
           format: email
-    
+
     AuthToken:
       type: string
       format: uuid
 
+    PaymentResult:
+      description: Object describing result of a payment request
+      type: object
+      required:
+        - transactionId
+        - result
+      properties:
+        transactionId:
+          type: string
+        result:
+          type: string
+          enum:
+            - success
+            - failure
+
+    PayuWebhookPldPaymentSuccess:
+      description: Response body of payu payment success notification webhook.
+      type: object
+      required:
+        - split_info
+        - customerName
+        - additionalCharges
+        - paymentMode
+        - hash
+        - status
+        - error_Message
+        - paymentId
+        - productInfo
+        - customerEmail
+        - customerPhone
+        - merchantTransactionId
+        - amount
+        - udf2
+        - notificationId
+        - udf1
+        - udf5
+        - udf4
+        - udf3
+      properties:
+        split_info:
+          type: string
+        customerName:
+          type: string
+        additionalCharges:
+          type: number
+          format: float
+        paymentMode:
+          type: string
+        hash:
+          type: string
+        status:
+          type: string
+        error_Message:
+          type: string
+        paymentId:
+          type: string
+        productInfo:
+          type: string
+        customerEmail:
+          type: string
+          format: email
+        customerPhone:
+          type: string
+        merchantTransactionId:
+          type: string
+        amount:
+          type: number
+          format: float
+        udf2:
+          type: string
+        notificationId:
+          type: string
+        udf1:
+          type: string
+        udf5:
+          type: string
+        udf4:
+          type: string
+        udf3:
+          type: string
+        
+
+    PayuWebhookPldPaymentFailure:
+      description: Response body of payu payment success notification webhook.
+      type: object
+      required:
+        - split_info
+        - customerName
+        - additionalCharges
+        - paymentMode
+        - hash
+        - status
+        - error_Message
+        - paymentId
+        - productInfo
+        - customerEmail
+        - customerPhone
+        - merchantTransactionId
+        - amount
+        - udf2
+        - notificationId
+        - udf1
+        - udf5
+        - udf4
+        - udf3
+      properties:
+        split_info:
+          type: string
+        customerName:
+          type: string
+        additionalCharges:
+          type: number
+          format: float
+        paymentMode:
+          type: string
+        hash:
+          type: string
+        status:
+          type: string
+        error_Message:
+          type: string
+        paymentId:
+          type: string
+        productInfo:
+          type: string
+        customerEmail:
+          type: string
+        customerPhone:
+          type: string
+        merchantTransactionId:
+          type: string
+        amount:
+          type: number
+          format: float
+        udf2:
+          type: string
+        notificationId:
+          type: string
+        udf1:
+          type: string
+        udf5:
+          type: string
+        udf4:
+          type: string
+        udf3:
+          type: string
+
+    PayuWebhookPldRefundInitiated:
+      description: Response body of payu payment success notification webhook.
+      type: object
+      required:
+        - notificationId
+        - completedOn
+        - refundAmount
+        - refundStatus
+        - refundId
+        - paymentId
+        - merchantTxnId
+        - addedOn
+      properties:
+        notificationId:
+          type: string
+        completedOn:
+          type: string
+          format: date-time
+        refundAmount:
+          type: number
+          format: float
+        refundStatus:
+          type: string
+        refundId:
+          type: string
+        paymentId:
+          type: string
+        merchantTxnId:
+          type: string
+        addedOn:
+          type: string
+          format: date-time
+
+    PayuWebhookPldRefundCompleted:
+      description: Response body of payu payment success notification webhook.
+      type: object
+      required:
+        - notificationId
+        - completedOn
+        - refundAmount
+        - refundStatus
+        - refundId
+        - paymentId
+        - merchantTxnId
+        - addedOn
+      properties:
+        notificationId:
+          type: string
+        completedOn:
+          type: string
+          format: date-time
+        refundAmount:
+          type: number
+          format: float
+        refundStatus:
+          type: string
+        refundId:
+          type: string
+        paymentId:
+          type: string
+        merchantTxnId:
+          type: string
+        addedOn:
+          type: string
+          format: date-time
+
+    PayuWebhookPldDisputeInitiated:
+      description: Response body of payu payment success notification webhook.
+      type: object
+      required:
+        - paymentId
+        - adminComment
+        - issueType
+        - initiatorType
+        - merchantTransactionId
+        - initiatedOn
+        - notificationId
+        - disputeId
+        - title
+        - totalAmount
+        - comment
+        - disputeStatus
+        - updatedOn
+      properties:
+        paymentId:
+          type: string
+        adminComment:
+          type: string
+        issueType:
+          type: string
+        initiatorType:
+          type: string
+        merchantTransactionId:
+          type: string
+        initiatedOn:
+          type: string
+          format: date-time
+        notificationId:
+          type: string
+        disputeId:
+          type: string
+        title:
+          type: string
+        totalAmount:
+          type: number
+          format: float
+        comment:
+          type: string
+        disputeStatus:
+          type: string
+        updatedOn:
+          type: string
+          format: date-time
+
+    PayuWebhookPldDisputeResolved:
+      description: Response body of payu payment success notification webhook.
+      type: object
+      required:
+        - paymentId
+        - adminComment
+        - issueType
+        - initiatorType
+        - merchantTransactionId
+        - initiatedOn
+        - notificationId
+        - disputeId
+        - title
+        - totalAmount
+        - comment
+        - disputeStatus
+        - updatedOn
+      properties:
+        paymentId:
+          type: string
+        adminComment:
+          type: string
+        issueType:
+          type: string
+        initiatorType:
+          type: string
+        merchantTransactionId:
+          type: string
+        initiatedOn:
+          type: string
+          format: date-time
+        notificationId:
+          type: string
+        disputeId:
+          type: string
+        title:
+          type: string
+        totalAmount:
+          type: number
+          format: float
+        comment:
+          type: string
+        disputeStatus:
+          type: string
+        updatedOn:
+          type: string
+          format: date-time
+
+
+  parameters:
+    ConferenceIdParam:
+      in: query
+      name: conferenceId
+      schema:
+        type: string
+        format: uuid
+
+    PaperIdParam:
+      in: query
+      name: paperId
+      schema:
+        type: string
+        format: uuid
 
   securitySchemes:
     AuthToken:
       type: http
       scheme: bearer
-      bearerFormat: jwt
+      bearerFormat: JWT
+      x-scopes:
+        - User
+        - ConferenceChair
+        - Operator
 
 
   responses:
     "200":
-      description: Requested resource was found. Depending on the REST verb (get or patch),
-                   provided credentials are sufficient to access/alter the resource. The content consists of..
-                   *GET* a copy of the requested resource.
-                   *PATCH* a copy of the altered resource.
+      description:
+        'Requested resource was found. Depending on the REST verb (get or patch), provided credentials are sufficient
+        to access/alter the resource. The content consists of::
+          *GET* a copy of the requested resource.
+          *PATCH* a copy of the altered resource.
+          *DELETE* empty response body'
 
     "201":
-      description: Requested resource was created. The content consists of a summarised form of the created resource.
-                   It includes a unique identifier to access the newly created resource.
+      description:
+        'Requested resource was created. The content consists of a summarised form of the created resource.
+        It includes a unique identifier to access the newly created resource.'
+
+    "401":
+      description:
+        'Missing authentication token. An authentication token is required to access the resource.
+        A 404 maybe generated when accessing a protected resource without credentials if presence
+        of the resource should not be known by unauthorized parties. For example, to prevent brute forcing paper ids.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
 
     "403":
-      description: Missing or invalid authentication token. An authentication token is required to access the resource.
+      description:
+        'Missing or invalid authentication token. An authentication token is required to access the resource.
+        A 404 maybe generated when accessing a protected resource with invalid credentials if presence
+        of the resource should not be known by unauthorized parties. For example, to prevent brute forcing paper ids.'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
 
     "404":
-      description: One or more of the indicated resources is invalid. This means that either it does not exist
-                   or the provided credentials do not have access to the resource. Details can be found in the response body.
+      description:
+        'One or more of the indicated resources is invalid. This means that either it does not exist
+        or the provided credentials do not have access to the resource. Details can be found in the response body.'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
 
     "422":
-      description: One or more of the provided request parameters is invalid. Details can be found in the response body.
-                   In response to a POST request, this means that the requested resource was not created.
-                   In response to a PATCH request, this means that the requested resource was not altered.
+      description:
+        'One or more of the provided request parameters is invalid. Details can be found in the response body.
+        In response to a POST request, this means that the requested resource was not created.
+        In response to a PATCH request, this means that the requested resource was not altered.'
       content:
         application/json:
           schema:

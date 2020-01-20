@@ -87,9 +87,40 @@ paths:
         403:
           $ref: '#/components/responses/403'
 
+  /user/resetpassword:
+    post:
+      summary: Reset a user's password (wip)
+      operationId: resetPasswordByEmail
+      security: []
+      requestBody:
+        required: true
+        description: "A JSON object that contains the user's email. To defeat brute force attacks
+                     on user email addresses, this endpoint always succeeds with HTTP 200."
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: email address of the user
+      responses:
+        200:
+          $ref: '#/components/responses/200'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    description: email address of the user where password reset request is sent
+
   /logout:
     post:
-      summary: Logout current user
+      summary: Logout current user (wip)
       description: Deauthorizes a logged in user. The corresponding auth credential is no longer valid.
       operationId: logoutUser
       responses:
@@ -125,6 +156,33 @@ paths:
           description: Invalid credentials.
 
   /conference:
+    get:
+      summary: Get a list of all conferences
+      operationId: getAllConference
+      security:
+        - AuthToken: [Operator]
+      #requestBody:
+      #  required: false
+      responses:
+        200:
+          $ref: '#/components/responses/200'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conference'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403'
+        422:
+          $ref: '#/components/responses/422'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
     post:
       summary: Create a new conference
       operationId: createConference
@@ -177,7 +235,7 @@ paths:
         required: true
         description: Id of the conference to be altered
     get:
-      summary: Get conference data
+      summary: Get conference data (wip)
       description: Get details of the conference indicated by conference id
       operationId: getConferenceData
       security: []
@@ -279,7 +337,7 @@ paths:
 
   /paper:
     get:
-      summary: Get all papers created by current user
+      summary: Get all papers created by current user (wip)
       operationId: getAllPapers
       security:
         - AuthToken: []
@@ -298,7 +356,7 @@ paths:
           $ref: '#/components/responses/403'
 
     post:
-      summary: Create a new paper
+      summary: Create a new paper (wip)
       operationId: createPaper
       security:
         - AuthToken: []
@@ -345,7 +403,7 @@ paths:
         required: true
         description: Id of the paper to get (HTTP GET) or to which a new revision is to be uploaded (HTTP_POST).
     get:
-      summary: Get paper details
+      summary: Get paper details (wip)
       operationId: getPaperData
       security:
         - AuthToken: []
@@ -359,7 +417,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
     post:
-      summary: Create a new revision of a paper
+      summary: Create a new revision of a paper (wip)
       operationId: createPaperRevision
       security:
         - AuthToken: []
@@ -390,7 +448,7 @@ paths:
         422:
           $ref: '#/components/responses/422'
     patch:
-      summary: Alter an existing paper
+      summary: Alter an existing paper (wip)
       operationId: alterPaper
       security:
         - AuthToken: []
@@ -411,7 +469,7 @@ paths:
         403:
           $ref: '#/components/responses/403'
     delete:
-      summary: Delete a paper
+      summary: Delete a paper (wip)
       description: Delete an existing paper. Request body is ignored and can be empty.
       operationId: deletePaper
       security:
@@ -459,7 +517,7 @@ paths:
 
   /3pty/payu/paymentSuccess:
     post:
-      summary: PayU payment success webhook
+      summary: PayU payment success webhook (wip)
       description: Process payment success webhook notification received direct from PayU servers.
                See https://developer.payumoney.com/general/#webhooks
       operationId: processPayuWebhookPaymentSuccess
@@ -478,7 +536,7 @@ paths:
 
   /3pty/payu/paymentFailure:
     post:
-      summary: PayU payment failure webhook
+      summary: PayU payment failure webhook (wip)
       description: Process payment failure webhook notification received direct from PayU servers.
                    See https://developer.payumoney.com/general/#webhooks
       operationId: processPayuWebhookPaymentFailure
@@ -497,7 +555,7 @@ paths:
 
   /3pty/payu/refundInitiate:
     post:
-      summary: PayU initiate refund webhook
+      summary: PayU initiate refund webhook (wip)
       description: Process refund initiated webhook notification received direct from PayU servers.
                    See https://developer.payumoney.com/general/#webhooks
       operationId: processPayuWebhookRefundInitiate
@@ -516,7 +574,7 @@ paths:
 
   /3pty/payu/refundComplete:
     post:
-      summary: PayU complete refund webhook
+      summary: PayU complete refund webhook (wip)
       description: Process refund completed webhook notification received direct from PayU servers.
                    See https://developer.payumoney.com/general/#webhooks
       operationId: processPayuWebhookRefundCompleted
@@ -535,7 +593,7 @@ paths:
 
   /3pty/payu/disputeInitiate:
     post:
-      summary: PayU initiate dispute webhook
+      summary: PayU initiate dispute webhook (wip)
       description: Process dispute initiated webhook notification received direct from PayU servers.
                    See https://developer.payumoney.com/general/#webhooks
       operationId: processPayuWebhookDisputeInitiate
@@ -554,7 +612,7 @@ paths:
 
   /3pty/payu/disputeResolved:
     post:
-      summary: PayU resolve dispute webhook
+      summary: PayU resolve dispute webhook (wip)
       description: Process dispute resolved webhook notification received direct from PayU servers.
                    See https://developer.payumoney.com/general/#webhooks
       operationId: processPayuWebhookDisputeResolved
@@ -619,6 +677,7 @@ components:
         error:
           type: string
           description: Human readable description of the error.
+
     LoginCredential:
       type: object
       required:

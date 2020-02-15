@@ -4,6 +4,7 @@ const development = {
   saltingRounds: 10,
 
   hostname: process.env.APPSERVER_HOSTNAME || 'http://localhost',  // TODO: set to 'https://rnm.sg' on prod
+  apiSuffix: process.env.api_suffix || '/api/v0',  // TODO: set to 'https://rnm.sg' on prod
 
   // database access
   db: {
@@ -38,7 +39,8 @@ const configs = {
 }
 
 const environment = process.env.NODE_ENV || 'development'  // development or production
-const stage = configs[environment]
+let stage = configs[environment]
+stage.apiUrl = stage.hostname + stage.apiSuffix
 
 module.exports = {
   development,

@@ -7,7 +7,7 @@ const UserModel = require('./models/users')
 
 
 function validateLoginToken(req, rsp, next) {
-  const token = req.body.authToken
+  const token = req.get('Auth-Token')
   if (token) {
     const options = {
       expiresIn: '2d',
@@ -22,12 +22,14 @@ function validateLoginToken(req, rsp, next) {
       // We call next to pass execution to the subsequent middleware
       next();
     } catch (err) {
-      if (err.name === 'JsonWebTokenError'){
+      // an auth token was provided but it was invalid -> HTTP 403
+      if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
         const result = {
           error: err.message
-        };
-        rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED).send(result);
+        }
+        rsp.status(HttpStatus.HTTP_403_FORBIDDEN).send(result);
       } else {
+        console.log(JSON.stringify(err))
         // Throw an error in case of unhandled errors
         throw new Error(err)
       }
@@ -65,6 +67,11 @@ async function validateConferenceJoinability(req, rsp, next) {
       reqParam: req.params,
     })
   }
+}
+
+
+async function validateOperatorToken(req, rsp, next) {
+  // TODO
 }
 
 
@@ -118,6 +125,7 @@ async function preLaunchCheck() {
 
 module.exports = {
   validateLoginToken,
+  validateOperatorToken,
   validateConferenceJoinability,
   preLaunchCheck,
   appendUserLogin,

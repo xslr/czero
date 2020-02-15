@@ -158,31 +158,21 @@ paths:
 
   /conference:
     get:
-      summary: Get a list of all conferences
-      operationId: getAllConference
-      security:
-        - AuthToken: [Operator]
-      #requestBody:
-      #  required: false
+      summary: Get a list of all active conferences
+      operationId: getAllPublicConference
+      security: []
       responses:
         200:
-          $ref: '#/components/responses/200'
+          description: A json object containing an array of conferences
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Conference'
-        401:
-          $ref: '#/components/responses/401'
-        403:
-          $ref: '#/components/responses/403'
-        422:
-          $ref: '#/components/responses/422'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  conferences:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conference'
 
     post:
       summary: Create a new conference
@@ -226,6 +216,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /conference/admin:
+    get:
+      summary: Get a list of all conferences
+      operationId: getAllConference
+      security:
+        - AuthToken: [Operator]
+      responses:
+        200:
+          description: A json object containing an array of conferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conferences:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conference'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403'
+        422:
+          $ref: '#/components/responses/422'
+
 
   /conference/{conferenceId}:
     parameters:
@@ -234,9 +249,9 @@ paths:
         schema:
           $ref: '#/components/parameters/ConferenceIdParam'
         required: true
-        description: Id of the conference to be altered
+        description: Id of a conference
     get:
-      summary: Get conference data (wip)
+      summary: Get conference data
       description: Get details of the conference indicated by conference id
       operationId: getConferenceData
       security: []
@@ -410,11 +425,13 @@ paths:
         - AuthToken: []
       responses:
         200:
-          $ref: '#/components/responses/200'
+          summary: The requested paper was found. Response body contains paper details, including its latest revision.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                allOf:
+                  - $ref: '#/components/schemas/Paper'
+                  - $ref: '#/components/schemas/PaperRevision'
         404:
           $ref: '#/components/responses/404'
     post:
@@ -722,16 +739,16 @@ components:
     ConferenceId:
       type: object
       required:
-        - id
+        - cid
       properties:
-        id:
+        cid:
           type: string
           format: uuid
 
     Conference:
       type: object
       required:
-        - title
+        - name
         - startDate
         - lastDate
         - startPaperSubmissionDate
@@ -742,7 +759,7 @@ components:
       properties:
         conferenceId:
           $ref: '#/components/schemas/ConferenceId'
-        title:
+        name:
           type: string
         startDate:
           type: string
@@ -779,8 +796,7 @@ components:
       type: object
       required:
         - title
-        - abstract
-        - authors
+        # - authors
         - presenter
         - uploader
       properties:
@@ -788,12 +804,10 @@ components:
           $ref: '#/components/schemas/PaperId'
         title:
           type: string
-        abstract:
-          type: string
-        authors:
-          type: array
-          items:
-            $ref: '#/components/schemas/Author'
+        # authors:
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/Author'
         presenterId:
           $ref: '#/components/schemas/UserId'
         uploaderId:
@@ -807,6 +821,7 @@ components:
       required:
         - paperId
         - revisionNumber
+        - abstract
         - docType
         - docData
       properties:
@@ -814,6 +829,8 @@ components:
           $ref: '#/components/schemas/PaperId'
         revisionNumber:
           type: integer
+        abstract:
+          type: string
         docBlob:
           type: string
           format: binary

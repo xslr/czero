@@ -19,10 +19,13 @@ exports.up = function(knex) {
     .createTable('tblConferenceMember', function(t) {
       t.integer('userId').unsigned().notNull()
       t.integer('conferenceId').unsigned().notNull()
-      t.enum('role', ['program_chair', 'attendee', 'reviewer', 'author'], { useNative: true, enumName: 'typeConferenceRole' }).notNull()
+      t.enum('role',
+             ['program_chair', 'attendee', 'reviewer', 'author'],
+             { useNative: true, enumName: 'typeConferenceRole' })
+       .notNull()
 
-      t.foreign('conferenceId').references('id').inTable('tblConference')
-      t.foreign('userId').references('id').inTable('tblUser')
+      t.foreign('conferenceId').references('id').inTable('tblConference').onDelete('CASCADE').onUpdate('CASCADE')
+      t.foreign('userId').references('id').inTable('tblUser').onDelete('CASCADE').onUpdate('CASCADE')
       t.primary(['conferenceId', 'userId', 'role'])
     })
 }

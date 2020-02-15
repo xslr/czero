@@ -58,10 +58,21 @@ async function assignRoleByEmail(confId, email, role) {
 }
 
 
-async function read(cid) {}
+async function readById(cid) {
+  let c = await knex('tblConference').where('id', cid)
+  // console.log(`cid = ${cid}, c=${JSON.stringify(c)}`)
+
+  if (1 === c.length)
+    return c[0]
+}
 
 
-async function readAll() {}
+async function readAll() {
+  let cs = await knex('tblConference')
+      .select(/*'id', 'name', 'dateStart', 'dateEnd'*/)
+
+  return cs
+}
 
 
 async function update(confUpdate) {}
@@ -99,7 +110,7 @@ module.exports = {
   create,
   assignRoleByEmail,
   assignRoleByUserId,
-  read,
+  readById,
   readAll,
   update,
   remove,

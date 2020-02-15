@@ -22,11 +22,20 @@ const HttpStatus = Object.freeze({
   // http 4xx
   'HTTP_400_BAD_REQUEST':400,
   'HTTP_401_UNAUTHORIZED':401,
+  'HTTP_403_FORBIDDEN':403,
   'HTTP_404_NOT_FOUND':404,
   'HTTP_422_UNPROCESSABLE_ENTITY':422,
 
   // http 5xx
   'HTTP_500_INTERNAL_SERVER_ERROR':500,
+})
+
+const ModelResult  = Object.freeze({
+  'NOT_FOUND': -3,
+  'INVALID_PARAM': -2,
+  'UNKNOWN_ERROR': -1,
+  'CREATED': 0,
+  'ALTERED': 1,
 })
 
 const PaymentStatus = Object.freeze({
@@ -62,4 +71,5 @@ module.exports = {
   PaymentStatus,
   ConferenceStatus,
   ConferenceRole,
+  ModelResult,
 }

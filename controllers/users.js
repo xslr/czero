@@ -149,6 +149,15 @@ async function login(req, rsp) {
 }
 
 
+async function logoutUser(req, rsp) {
+  // TODO
+}
+
+async function getUserByEmail(req, rsp) {
+  // TODO
+}
+
+
 async function getUserById(req, rsp) {
   console.log(req.params)
 
@@ -170,14 +179,8 @@ async function getUserById(req, rsp) {
 }
 
 
-async function getUserByEmail(req, rsp) {
+async function getUserByAuthToken(req, rsp) {
   console.log(req.body.authToken)
-
-  if (!req.decodedToken) {
-    rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED)
-       .send(mkResult(ResultCode.ERR_AUTH_TOKEN_MISSING, 'Auth token is required to get user data.'))
-    return
-  }
 
   const email = req.decodedToken.email
   let user = await UserModel.getUserByEmail(email)
@@ -244,8 +247,10 @@ async function resetPassword(req, rsp) {
 module.exports = {
   add,
   login,
+  logoutUser,
   getUserById,
   getUserByEmail,
+  getUserByAuthToken,
   update,
   deactivate,
   resetPassword,

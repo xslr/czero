@@ -74,10 +74,47 @@ async function update(req, rsp) {
 }
 
 
-async function getAllConference(req, rsp) {}
+async function alterConferenceById(req, rsp) {
+  // TODO
+}
 
 
-async function getConferenceById(req, rsp) {}
+async function getAllConference(req, rsp) {
+  // TODO
+  let cs = await ConferenceModel.readAll()
+  console.log(JSON.stringify(cs))
+
+  rsp.status(HttpStatus.HTTP_200_OK).send({
+    conferences: cs
+    })
+}
+
+
+async function getAvailableConference(req, rsp) {
+  // TODO
+}
+
+
+async function getConferenceById(req, rsp) {
+  // TODO: check if user is allowed to see this conference
+
+  let id = req.params.conferenceId
+  if (id === null) {
+    rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send()
+    return
+  }
+
+  let conf = await ConferenceModel.readById(id)
+
+  console.log(conf)
+  if (conf) {
+    rsp.status(HttpStatus.HTTP_200_OK).send(conf)
+  } else if (undefined === conf) {
+    rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send()
+  } else {
+    rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send()
+  }
+}
 
 
 // sandbox to render payment page
@@ -116,16 +153,23 @@ async function joinConference(req, rsp) {
   const user = req.user
   const body = req.body
 
+  // This endpoint should create a payment request object and send that as a response to the client.
+  // The user can complete payment using the payment transaction id as a handle.
+  // After the payment is successful (via /payment/success), the joining is complete and
+  //   a confirmation/transaction id can be sent to user
+
+  // TODO: implement closing of the conference joining procedure aafter payment completion
+
   let status = HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR
   let response = body
   response.key = stage.merchantKey
-  response.surl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.conferenceId}/paymentSuccess`
-  response.furl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.conferenceId}/paymentFail`
+  response.surl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.cid}/paymentSuccess`
+  response.furl = `http://${stage.ip}:${stage.port}/api/v0/conference/${req.params.cid}/paymentFail`
 
   // record payment transaction in db
   const p = {
     amount: body.amount,
-    cid: req.params.conferenceId,
+    cid: req.params.cid,
     status: PaymentStatus.PROCESSING,
     firstname: user.firstName,
     email: user.email,
@@ -144,7 +188,7 @@ async function joinConference(req, rsp) {
     response.lastname = user.lastName
     response.txnId = `${result[0]}`
     response.txnHash = getRequestHash(req, response.txnId)
-    response.conferenceId = req.params.conferenceId
+    response.conferenceId = req.params.cid
     status = HttpStatus.HTTP_200_OK
   }
 
@@ -216,15 +260,21 @@ async function paymentFail(req, rsp) {
   rsp.status(HttpStatus.HTTP_200_OK).send()
 }
 
+async function setConferenceChair(req, rsp) {
+}
+
 
 module.exports = {
   add,
   update,
   getAllConference,
+  getAvailableConference,
   getConferenceById,
   sboxJoinConference,  // endpoint to test joining a conference
   getRequestHash,
   joinConference,
   paymentSuccess,
   paymentFail,
+  setConferenceChair,
+  alterConferenceById,
 }

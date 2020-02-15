@@ -19,8 +19,8 @@ exports.up = function(knex) {
         'FAILED',     // txn processing completed by gateway with failed result
       ], { useNative: true, enumName: 'typePaymentStatus' }).notNull()
 
-      t.foreign('uid').references('id').inTable('tblUser').onDelete('CASCADE')
-      t.foreign('cid').references('id').inTable('tblConference').onDelete('CASCADE')
+      t.foreign('uid').references('id').inTable('tblUser').onDelete('CASCADE').onUpdate('CASCADE')
+      t.foreign('cid').references('id').inTable('tblConference').onDelete('CASCADE').onUpdate('CASCADE')
     })
 }
 

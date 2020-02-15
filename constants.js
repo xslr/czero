@@ -36,6 +36,7 @@ const ModelResult  = Object.freeze({
   'UNKNOWN_ERROR': -1,
   'CREATED': 0,
   'ALTERED': 1,
+  'FOUND': 2,
 })
 
 const PaymentStatus = Object.freeze({

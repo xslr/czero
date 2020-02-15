@@ -1,16 +1,16 @@
 const tables = [
   {
-    name: 'tblOperator',
+    name: 'operators',
     columns: [
       'user_id',  // foreign key on tbl_user.id
     ],
   },
   {
-    name: 'tblEmailLogin',
+    name: 'email_logins',
     columns: [
       'email',
       'password',
-      'userId',  // foreign key to tbl_user.id
+      'user_id',  // foreign key to tbl_user.id
     ],
   },
   /* disable check until sso login is implemented
@@ -19,41 +19,41 @@ const tables = [
     columns: [
       'ssoProvider',  // e.g. google, fb, etc.
       'externalId',  // user's unique identifier given by sso provider
-      'userId',  // foreign key to tbl_user.id
+      'user_id',  // foreign key to tbl_user.id
     ],
   },
   */
   {
-    name: 'tblUser',
+    name: 'users',
     columns: [
       'id',
-      'firstName',
-      'middleName',
-      'lastName',
+      'first_name',
+      'middle_name',
+      'last_name',
       'email',
-      'phoneNumber',
-      'addressLine1',
-      'addressLine2',
-      'addressLine3',
+      'phone_number',
+      'address_line1',
+      'address_line2',
+      'address_line3',
     ],
   },
   {
-    name: 'tblConference',
+    name: 'conferences',
     columns: [
       'id',
       'name',
       'startDate',
       'endDate',
-      'venueLine1',
-      'venueLine2',
-      'venueLine3',
+      'venue_line_1',
+      'venue_line_2',
+      'venue_line_3',
     ],
   },
   {
-    name: 'tblConferenceMember',
+    name: 'conference_member',
     columns: [
-      'userId',
-      'conferenceId',
+      'user_id',
+      'conference_id',
     ]
   },
 ];

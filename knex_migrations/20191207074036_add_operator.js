@@ -1,12 +1,12 @@
 exports.up = function(knex) {
   return knex.schema
-    .createTable('tblOperator', function(t) {
-      t.integer('userId').unsigned().primary().notNull()
-      t.foreign('userId').references('id').inTable('tblUser')
+    .createTable('operators', function(t) {
+      t.integer('user_id').unsigned().primary().notNull()
+      t.foreign('user_id').references('id').inTable('users')
     })
 }
 
 exports.down = function(knex) {
   return knex.schema
-    .dropTable('tblOperator')
+    .dropTable('operators')
 }

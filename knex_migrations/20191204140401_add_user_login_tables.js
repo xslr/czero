@@ -1,35 +1,35 @@
 exports.up = function(knex) {
   return knex.schema
-    .createTable('tblUser', function(t) {
+    .createTable('users', function(t) {
       t.increments('id').primary()
-      t.dateTime('createdAt', {useTz: true}).notNull().defaultTo(knex.fn.now())
-      t.dateTime('updatedAt', {useTz: true}).notNull().defaultTo(knex.fn.now())
-      t.dateTime('deletedAt', {useTz: true}).nullable()
+      t.dateTime('created_at', {useTz: true}).notNull().defaultTo(knex.fn.now())
+      t.dateTime('updated_at', {useTz: true}).notNull().defaultTo(knex.fn.now())
+      t.dateTime('deleted_at', {useTz: true}).nullable()
 
-      t.string('firstName').notNull()
-      t.string('middleName').nullable()
-      t.string('lastName').notNull()
+      t.string('first_name').notNull()
+      t.string('middle_name').nullable()
+      t.string('last_name').notNull()
       t.string('phone').nullable()
-      t.string('addressLine1').nullable()
-      t.string('addressLine2').nullable()
-      t.string('addressCity').nullable()
-      t.string('addressZip').nullable()
-      t.string('addressCountry').nullable()
+      t.string('address_line1').nullable()
+      t.string('address_line2').nullable()
+      t.string('address_city').nullable()
+      t.string('address_zip').nullable()
+      t.string('address_country').nullable()
 
-      t.enum('status', ['active', 'inactive'], { useNative: true, enumName: 'typeUserStatus' }).notNull()
+      t.enum('status', ['active', 'inactive'], { useNative: true, enumName: 'type_user_status' }).notNull()
     })
-    .createTable('tblEmailLogin', function(t) {
+    .createTable('email_logins', function(t) {
       t.string('email').primary().notNull()
-      t.string('pwHash').notNull()
-      t.integer('userId').unsigned().notNull()
+      t.string('password_hash').notNull()
+      t.integer('user_id').unsigned().notNull()
 
-      t.foreign('userId').references('id').inTable('tblUser').onDelete('CASCADE')
+      t.foreign('user_id').references('id').inTable('users').onDelete('CASCADE')
     })
 }
 
 exports.down = function(knex) {
   return knex.schema
-    .dropTable('tblEmailLogin')
-    .dropTable('tblUser')
-    .raw('DROP TYPE "typeUserStatus"')
+    .dropTable('email_logins')
+    .dropTable('users')
+    .raw('DROP TYPE "type_user_status"')
 }

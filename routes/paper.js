@@ -3,7 +3,7 @@ const validator = require('../utils')
 
 module.exports = (router) => {
   router.route('/paper')
-        .get(validator.validateLoginToken, controller.getAllUserPapers)
+        .get(validator.validateLoginToken, validator.appendUserLogin, controller.getAllUserPapers)
         .post(validator.validateLoginToken, controller.addPaper)
 
   router.route('/paper/:paperId')

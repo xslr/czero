@@ -3,43 +3,8 @@ const { ResultCode } = require('../result_code')
 const { ModelResult } = require('../constants')
 
 
-function onAddPaperQuerySuccess(req, rsp, result) {
-  return ModelResult.CREATED
-}
-
-function onAddPaperQueryError(req, rsp, result) {}
-
 async function addPaper(p) {
-  return knex.transaction(trx => {
-    return trx
-      .insert({
-        title: p.title,
-        authors: p.authors,
-        submitterId: p.uploaderId,
-        presenterId: p.presenterId,
-        cid: p.cid,
-      }, 'id')
-      .into('tblPaper')
-      .then(id => {
-        // console.log(`--> id is ${id}:${typeof id}:${id.toString()}`)
-        return trx.insert({
-          email: req.body.email,
-          pwHash: hashedPassword,
-          userId: id[0],
-        })
-        .into('tblEmailLogin')
-        .catch(err => {
-          console.error(`Error inserting into login table: ${err}`)
-          throw err
-        })
-      })
-      .catch(err => {
-        console.error(`Error while inserting: ${err}`)
-        throw err
-      })
-  })
-  .then(result => onAddPaperQuerySuccess(req, rsp, result))
-  .catch(err => onAddPaperQueryError(req, rsp, err))
+  return ModelResult.UNKNOWN_ERROR
 }
 
 
@@ -50,8 +15,8 @@ function isPaperRevisionValid(paperRevision) {
 
 
 async function getLastRevision(paperId) {
-  let res = await knex('tblPaperRevision')
-    .max('revisionNumber')
+  let res = await knex('paper_revisions')
+    .max('revision_number')
     .where({paperId: paperId})
 
   // console.log(`--> res = ${JSON.stringify(res)}`)
@@ -84,16 +49,16 @@ async function addRevision(paperRevision) {
     return ModelResult.NOT_FOUND
   }
 
-  return knex('tblPaperRevision')
+  return knex('paper_revisions')
     .insert({
-      revisionNumber: nextRevision,
+      revision_number: nextRevision,
       abstract: paperRevision.abstract,
       paperId: paperRevision.paperId,
-    }, 'revisionNumber')
-    .into('tblPaperRevision')
-    .then(revisionNumber => {
-      console.log(`Added revision number ${revisionNumber}`)
-      return { result: ModelResult.CREATED, revNum: revisionNumber }
+    }, 'revision_number')
+    .into('paper_revisions')
+    .then(revision_number => {
+      console.log(`Added revision number ${revision_number}`)
+      return { result: ModelResult.CREATED, revNum: revision_number }
     })
 }
 
@@ -116,10 +81,10 @@ async function setRevisionDocument(paperId, revNum, name, type, blob) {
       return ModelResult.UNKNOWN_ERROR
     }
 
-    newUploadId = Number(uploadedIds[0])
-    let updates = await trx('tblPaperRevision')
-      .where({paperId: paperId, revisionNumber: revNum})
-      .update({uploadId: newUploadId}, 'revisionNumber')
+    const newUploadId = Number(uploadedIds[0])
+    let updates = await trx('paper_revisions')
+      .where({paperId: paperId, revision_number: revNum})
+      .update({upload_id: newUploadId}, 'revision_number')
 
     if (1 === updates.length) {
       // console.log('--> 2')
@@ -127,7 +92,7 @@ async function setRevisionDocument(paperId, revNum, name, type, blob) {
     } else if (0 === updates.length) {
       return ModelResult.NOT_FOUND
     } else {
-      console.log(`--> 3 updates=${JSON.stringify(updates)} updates.length=${updates.length}`)
+      // console.log(`--> 3 updates=${JSON.stringify(updates)} updates.length=${updates.length}`)
       return ModelResult.UNKNOWN_ERROR
     }
   })
@@ -137,10 +102,45 @@ async function setRevisionDocument(paperId, revNum, name, type, blob) {
 
 
 async function getPaper(paperId) {
+  let paper = null
+  try {
+    paper = await knex('papers')
+      .join('paper_revisions', 'papers.id', 'paper_revisions.paper_id')
+      .join('binaries', 'paper_revisions.upload_id', 'binaries.id')
+      .first(['papers.id', 'papers.title', 'papers.date_submitted', 'papers.status', 'paper_revisions.revision_number', 'paper_revisions.abstract', 'paper_revisions.upload_id', 'binaries.name', 'binaries.mime_type', 'binaries.object'])
+      .where('papers.id', paperId)
+      .orderBy('paper_revisions.revision_number', 'desc')
+  } catch (e) {
+    return ModelResult.UNKNOWN_ERROR
+  }
+
+  // console.log(paper)
+
+  if (null === paper) {
+    return { result: ModelResult.NOT_FOUND, papers: null }
+  } else {
+    return { result: ModelResult.FOUND, papers: paper }
+  }
 }
 
 
 async function getUserPapers(uid) {
+  let rows = null
+  try {
+    rows = await knex('papers')
+      .where('submitterId', uid)
+      .select(['id', 'title', 'date_submitted', 'status'])
+  } catch (e) {
+    return ModelResult.UNKNOWN_ERROR
+  }
+
+  // console.log(rows)
+
+  if (rows.length === 0) {
+    return { result: ModelResult.NOT_FOUND, papers: null }
+  } else {
+    return { result: ModelResult.FOUND, papers: rows }
+  }
 }
 
 

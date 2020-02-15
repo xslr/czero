@@ -58,20 +58,20 @@ async function add(req, rsp) {
     knex.transaction(trx => {
       return trx
         .insert({
-          createdAt: new Date().toUTCString(),
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
+          created_at: new Date().toUTCString(),
+          first_name: req.body.firstName,
+          last_name: req.body.lastName,
           status: 'active',
         }, 'id')
-        .into('tblUser')
+        .into('users')
         .then(id => {
           // console.log(`--> id is ${id}:${typeof id}:${id.toString()}`)
           return trx.insert({
             email: req.body.email,
-            pwHash: hashedPassword,
-            userId: id[0],
+            password_hash: hashedPassword,
+            user_id: id[0],
           })
-          .into('tblEmailLogin')
+          .into('email_logins')
           .catch(err => {
             console.error(`Error inserting into login table: ${err}`)
             throw err
@@ -110,7 +110,7 @@ function onLoginQuerySuccess(password, rsp, res) {
   let result = mkResult(ResultCode.ERR_INCORRECT_LOGIN, 'incorrect credentials')
 
   if (Array.isArray(res) && res.length > 0) {
-    const compareRes = bcrypt.compareSync(password, res[0].pwHash)
+    const compareRes = bcrypt.compareSync(password, res[0].password_hash)
     if (compareRes) {
       httpStatus = HttpStatus.HTTP_200_OK
       const token = getAuthToken(res[0].email)
@@ -139,8 +139,8 @@ async function login(req, rsp) {
     return
   }
 
-  return knex('tblEmailLogin')
-    .select('email', 'pwHash', 'userId')
+  return knex('email_logins')
+    .select('email', 'password_hash', 'user_id')
     .where({
       email: email,
     })

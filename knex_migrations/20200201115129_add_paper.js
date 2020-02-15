@@ -1,44 +1,44 @@
 exports.up = function(knex) {
   return knex.schema
-    .createTable('tblPaper', function(t) {
+    .createTable('papers', function(t) {
       t.increments('id').primary()
       t.string('title').notNull()
-      t.integer('submitterId').unsigned().notNull()
-      t.integer('presenterId').unsigned().notNull()
+      t.integer('submitter_id').unsigned().notNull()
+      t.integer('presenter_id').unsigned().notNull()
       t.integer('cid').unsigned().notNull()
 
-      t.dateTime('dateSubmitted').notNull()
+      t.dateTime('date_submitted').notNull()
       t.enum('status',
              [ 'submitted', 'in_review', 'await_final_draft', 'published' ],
-             { useNative: true, enumName: 'typePaperStatus' })
+             { useNative: true, enumName: 'type_paper_status' })
        .notNull()
 
-      t.foreign('submitterId').references('id').inTable('tblUser').onDelete('CASCADE').onUpdate('CASCADE')
-      t.foreign('presenterId').references('id').inTable('tblUser').onDelete('CASCADE').onUpdate('CASCADE')
-      t.foreign('cid').references('id').inTable('tblConference').onDelete('CASCADE').onUpdate('CASCADE')
+      t.foreign('submitter_id').references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE')
+      t.foreign('presenter_id').references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE')
+      t.foreign('cid').references('id').inTable('conferences').onDelete('CASCADE').onUpdate('CASCADE')
     })
-    .createTable('tblBinaries', function(t) {
+    .createTable('binaries', function(t) {
       t.increments('id').primary()
       t.string('name').notNull()
       t.string('mime_type').notNull()
       t.binary('object').notNull()
     })
-    .createTable('tblPaperRevision', function(t) {
-      t.integer('revisionNumber').unsigned().notNull()
+    .createTable('paper_revisions', function(t) {
+      t.integer('revision_number').unsigned().notNull()
       t.string('abstract').notNull()
-      t.integer('uploadId').unsigned()
-      t.integer('paperId').unsigned().notNull()
+      t.integer('upload_id').unsigned()
+      t.integer('paper_id').unsigned().notNull()
 
-      t.foreign('uploadId').references('id').inTable('tblBinaries').onDelete('CASCADE').onUpdate('CASCADE')
-      t.foreign('paperId').references('id').inTable('tblPaper').onDelete('CASCADE').onUpdate('CASCADE')
-      t.primary(['revisionNumber', 'paperId'])
+      t.foreign('upload_id').references('id').inTable('binaries').onDelete('CASCADE').onUpdate('CASCADE')
+      t.foreign('paper_id').references('id').inTable('papers').onDelete('CASCADE').onUpdate('CASCADE')
+      t.primary(['revision_number', 'paper_id'])
     })
 }
 
 exports.down = function(knex) {
   return knex.schema
-    .dropTable('tblPaperRevision')
-    .dropTable('tblBinaries')
-    .dropTable('tblPaper')
-    .raw('DROP TYPE "typePaperStatus"')
+    .dropTable('paper_revisions')
+    .dropTable('binaries')
+    .dropTable('papers')
+    .raw('DROP TYPE "type_paper_status"')
 }

@@ -1,15 +1,28 @@
 const PaperModel = require('../models/paper');
-const PaymentModel = require('../models/payment')
 
-const { mkResult } = require('../result_code')
-const { ConferenceRole, HttpStatus, ModelResult, PaymentStatus, ResultCode } = require('../constants')
-const crypto = require('crypto')
+const { HttpStatus, ModelResult } = require('../constants')
 
 const { stage } = require('../config')
 
 
 async function getAllUserPapers(req, rsp) {
-    // TODO
+  const uid = req.user.id
+  console.log(`uid = ${uid}`)
+  const { result, papers } = await PaperModel.getUserPapers(uid)
+
+  switch (result) {
+    case ModelResult.FOUND:
+      rsp.status(HttpStatus.HTTP_200_OK).send(papers)
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send()
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send()
+      break;
+  }
 }
 
 
@@ -37,7 +50,11 @@ async function addPaper(req, rsp) {
 
 
 async function getPaperById(req, rsp) {
-    // TODO
+  const pid = req.params.paperId
+
+  const { result, papers } = await PaperModel.getPaper(pid)
+
+  rsp.status(HttpStatus.HTTP_200_OK).send(papers)
 }
 
 
@@ -73,11 +90,11 @@ async function addRevision(req, rsp) {
 
 async function putRevisionDocument(req, rsp) {
   console.log(`got revision document '${req.get('Document-Name')}' and length=${req.body.length}`)
-  docName = req.get('Document-Name')
-  docType = req.get('Content-Type')
-  docBlob = req.body
-  paperId = req.params.paperId
-  revId = req.params.revId
+  const docName = req.get('Document-Name')
+  const docType = req.get('Content-Type')
+  const docBlob = req.body
+  const paperId = req.params.paperId
+  const revId = req.params.revId
   let res = await PaperModel.setRevisionDocument(paperId, revId, docName, docType, docBlob)
 
   switch (res) {

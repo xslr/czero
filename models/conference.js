@@ -9,7 +9,7 @@ function isValidRole(role) {
 
 
 async function create(conf) {
-  return knex('tblConference')
+  return knex('conferences')
     .insert(conf)
 }
 
@@ -25,7 +25,7 @@ async function assignRoleByUserId(confId, userId, role) {
     return ResultCode.ERR_INVALID_ROLE
   }
 
-  return knex('tblConferenceMember')
+  return knex('conference_member')
     .insert({
       userId: userId,
       conferenceId: confId,
@@ -54,12 +54,12 @@ async function assignRoleByUserId(confId, userId, role) {
 async function assignRoleByEmail(confId, email, role) {
   const userId = await UserModel.getUserByEmail(email)
 
-  return await assignRoleByUid(confId, userId, role)
+  return await assignRoleByUserId(confId, userId, role)
 }
 
 
 async function readById(cid) {
-  let c = await knex('tblConference').where('id', cid)
+  let c = await knex('conferences').where('id', cid)
   // console.log(`cid = ${cid}, c=${JSON.stringify(c)}`)
 
   if (1 === c.length)
@@ -68,8 +68,8 @@ async function readById(cid) {
 
 
 async function readAll() {
-  let cs = await knex('tblConference')
-      .select(/*'id', 'name', 'dateStart', 'dateEnd'*/)
+  let cs = await knex('conferences')
+      .select(/*'id', 'name', 'date_start', 'date_end'*/)
 
   return cs
 }
@@ -87,9 +87,9 @@ function getConferenceStatus(conf) {
 
   let status = ConferenceStatus.CLOSED
   const now = new Date()
-  if (now < new Date(conf.dateStart)) {
+  if (now < new Date(conf.date_start)) {
     status = ConferenceStatus.OPEN
-  } else if (now < new Date(conf.dateEnd)) {
+  } else if (now < new Date(conf.date_end)) {
     status = ConferenceStatus.ACTIVE
   }
 
@@ -97,7 +97,7 @@ function getConferenceStatus(conf) {
 }
 
 async function conferenceStatusById(cid) {
-  let c = await knex('tblConference').select().where('id', cid)
+  let c = await knex('conferences').select().where('id', cid)
   if (c instanceof Array) {
     c = c[0]
   }

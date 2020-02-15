@@ -9,8 +9,8 @@ const userInfoColumns = [
 
 
 async function getUserById(id) {
-  let user = await knex('tblUser')
-    .join('tblEmailLogin', 'tblUser.id', 'tblEmailLogin.userId')
+  let user = await knex('users')
+    .join('email_logins', 'users.id', 'email_logins.userId')
     .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('id', id)
@@ -21,8 +21,8 @@ async function getUserById(id) {
 
 
 async function getUserByEmail(email) {
-  let user = await knex('tblUser')
-    .join('tblEmailLogin', 'tblUser.id', 'tblEmailLogin.userId')
+  let user = await knex('users')
+    .join('email_logins', 'users.id', 'email_logins.userId')
     .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('email', email)
@@ -53,7 +53,7 @@ async function updateUser(userUpdate) {
       delete user.id
       delete user.email
 
-      return knex('tblUser')
+      return knex('users')
         .where({ id: userId })
         .update(user)
         .then(res => {
@@ -76,7 +76,7 @@ async function isUserOperator(uid) {
   }
 
   return knex('tblOperator')
-    .join('tblEmailLogin', 'tblUser.id', 'tblEmailLogin.userId')
+    .join('email_logins', 'users.id', 'email_logins.userId')
     .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('email', email)

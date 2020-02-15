@@ -372,7 +372,7 @@ paths:
           $ref: '#/components/responses/403'
 
     post:
-      summary: Create a new paper (wip)
+      summary: Create a new paper
       operationId: createPaper
       security:
         - AuthToken: []
@@ -435,7 +435,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
     post:
-      summary: Create a new revision of a paper (wip)
+      summary: Create a new revision of a paper
       operationId: createPaperRevision
       security:
         - AuthToken: []

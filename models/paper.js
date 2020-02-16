@@ -198,7 +198,7 @@ async function getUserPapers(uid) {
   let rows = null
   try {
     rows = await knex('papers')
-      .where('submitterId', uid)
+      .where('submitter_id', uid)
       .select(['id', 'title', 'date_submitted', 'status'])
   } catch (e) {
     return ModelResult.UNKNOWN_ERROR

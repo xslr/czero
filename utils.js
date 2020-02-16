@@ -7,7 +7,7 @@ const UserModel = require('./models/users')
 
 
 function validateLoginToken(req, rsp, next) {
-  const token = req.get('Auth-Token')
+  const token = req.get('CZero-Auth-Token')
   if (token) {
     const options = {
       expiresIn: '2d',

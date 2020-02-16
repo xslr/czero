@@ -7,7 +7,7 @@ const { stage } = require('../config')
 
 async function getAllUserPapers(req, rsp) {
   const uid = req.user.id
-  console.log(`uid = ${uid}`)
+  // console.log(`uid = ${uid}`)
   const { result, papers } = await PaperModel.getUserPapers(uid)
 
   switch (result) {

@@ -419,7 +419,7 @@ paths:
         required: true
         description: Id of the paper to get (HTTP GET) or to which a new revision is to be uploaded (HTTP_POST).
     get:
-      summary: Get paper details (wip)
+      summary: Get paper details
       operationId: getPaperData
       security:
         - AuthToken: []

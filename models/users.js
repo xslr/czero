@@ -3,14 +3,14 @@ const { ResultCode } = require('../result_code')
 
 
 const userInfoColumns = [
-  'addressCountry', 'addressLine1', 'addressLine2', 'addressZip',
-  'createdAt', 'deletedAt', 'email', 'firstName', 'id', 'lastName',
-  'middleName', 'phone', 'status', 'updatedAt']
+  'address_country', 'address_line1', 'address_line2', 'address_zip',
+  'created_at', 'deleted_at', 'email', 'first_name', 'id', 'last_name',
+  'middle_name', 'phone', 'status', 'updated_at']
 
 
 async function getUserById(id) {
   let user = await knex('users')
-    .join('email_logins', 'users.id', 'email_logins.userId')
+    .join('email_logins', 'users.id', 'email_logins.user_id')
     .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('id', id)
@@ -22,7 +22,7 @@ async function getUserById(id) {
 
 async function getUserByEmail(email) {
   let user = await knex('users')
-    .join('email_logins', 'users.id', 'email_logins.userId')
+    .join('email_logins', 'users.id', 'email_logins.user_id')
     .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('email', email)
@@ -76,7 +76,7 @@ async function isUserOperator(uid) {
   }
 
   return knex('tblOperator')
-    .join('email_logins', 'users.id', 'email_logins.userId')
+    .join('email_logins', 'users.id', 'email_logins.user_id')
     .select(userInfoColumns)
     // TODO make a view for userInfo instead of explicitly specifying the columns
     .where('email', email)

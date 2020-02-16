@@ -127,12 +127,14 @@ async function getPaperBlob(req, rsp) {
 
 
 async function deletePaper(req, rsp) {
-    // TODO
+  // TODO
+  return { result: ModelResult.NOT_IMPLEMENTED }
 }
 
 
 async function alterPaper(req, rsp) {
-    // TODO
+  // TODO
+  return { result: ModelResult.NOT_IMPLEMENTED }
 }
 
 
@@ -203,7 +205,27 @@ async function addReviewers(req, rsp) {
 }
 
 
-async function getReviews(req, rsp) {
+async function getPaperReviews(req, rsp) {
+  // console.log(req.user)
+
+  const paperId = req.params.paperId
+  const paperRevision = req.params.revisionId
+
+  let { result, reviews, error_detail } = await PaperModel.getPaperReviews(paperId, paperRevision)
+
+  switch (result) {
+    case ModelResult.FOUND:
+      rsp.status(HttpStatus.HTTP_201_CREATED).send(reviews)
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send(error_detail)
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(error_detail)
+      break
+  }
 }
 
 
@@ -248,7 +270,7 @@ module.exports = {
   addRevision,
   putRevisionDocBlob,
   addReviewers,
-  getReviews,
+  getPaperReviews,
   addReview,
   onPaperDecision,
 }

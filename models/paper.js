@@ -258,24 +258,60 @@ async function addReviewers(reviewers, paperId, requesterId) {
 }
 
 
+async function getPaperReviews(paperId, paperRevision) {
+  let rows = null
+
+  const getReviewsWithRevIdQuery = knex('reviews')
+    .join('paper_revisions', 'reviews.revision_id', 'paper_revisions.revision_id')
+    .where('paper_revisions.paper_id', paperId)
+    .select(['paper_revisions.paper_revision', 'reviews.review', 'reviews.reviewer_id', 'reviews.date_reviewed'])
+    .as('paper_reviews')
+
+  let getReviewsForRevisionQuery = undefined
+  if (undefined == paperRevision) {
+    getReviewsForRevisionQuery = knex(getReviewsWithRevIdQuery)
+      .select(['paper_reviews.paper_revision', 'paper_reviews.review', 'paper_reviews.reviewer_id', 'paper_reviews.date_reviewed'])
+  } else {
+    getReviewsForRevisionQuery = knex(getReviewsWithRevIdQuery)
+      .where('paper_reviews.paper_revision', paperRevision)
+      .select(['paper_reviews.paper_revision', 'paper_reviews.review', 'paper_reviews.reviewer_id', 'paper_reviews.date_reviewed'])
+  }
+
+  // console.log(getReviewsForRevisionQuery.toSQL())
+
+  try {
+    rows = await getReviewsForRevisionQuery
+  } catch (e) {
+    return { result: ModelResult.UNKNOWN_ERROR, error_detail: e }
+  }
+
+  // console.log(rows)
+
+  if (0 === rows.length) {
+    return { result: ModelResult.NOT_FOUND, reviews: null }
+  } else {
+    return { result: ModelResult.FOUND, reviews: rows }
+  }
+}
+
+
 async function addReview(review, paperId, paperRevision, reviewerId) {
   // do not check if reviewerId is allowed to review paperId, as that was already checked while routing by a middleware function
   let insertedRows = []
 
+  const revisionIdSubQuery = knex('paper_revisions')
+    .where({ paper_id: paperId, paper_revision: paperRevision })
+    .first('revision_id')
+
+  const insertionQuery = knex('reviews')
+    .insert({
+      review: review,
+      reviewer_id: reviewerId,
+      revision_id: revisionIdSubQuery,
+    }, 'reviews.id')
+  // console.log(insertionQuery.toSQL())
+
   try {
-    const revisionIdSubQuery = knex('paper_revisions')
-      .where({ paper_id: paperId, paper_revision: paperRevision })
-      .first('revision_id')
-
-    const insertionQuery = knex('reviews')
-      .insert({
-        review: review,
-        reviewer_id: reviewerId,
-        revision_id: revisionIdSubQuery,
-      }, 'reviews.id')
-
-    // console.log(insertionQuery.toSQL())
-
     insertedRows = await insertionQuery
   } catch (e) {
     // console.log(e)
@@ -312,5 +348,6 @@ module.exports = {
   getAllPapers,
   setRevisionDocument,
   addReviewers,
+  getPaperReviews,
   addReview,
 }

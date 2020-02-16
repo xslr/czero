@@ -13,5 +13,9 @@ module.exports = (router) => {
         .post(validator.validateLoginToken, controller.addRevision)
 
   router.route('/paper/:paperId/:revId')
-  		.put(validator.validateLoginToken, controller.putRevisionDocument)
+        .get(validator.validateLoginToken, controller.getPaperByRevision)
+        .put(validator.validateLoginToken, controller.putRevisionDocument)
+
+  router.route('/paper/:paperId/:revId/:documentKey')
+        .get(validator.validateLoginToken, controller.getPaperBlob)
 }

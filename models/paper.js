@@ -74,7 +74,7 @@ async function setRevisionDocument(paperId, revNum, name, type, blob) {
       mime_type: type,
       object: blob,
     }, 'id')
-    .into('tblBinaries')
+    .into('binaries')
 
     if (1 != uploadedIds.length) {
       // console.log('--> 1')
@@ -107,7 +107,16 @@ async function getPaper(paperId) {
     paper = await knex('papers')
       .join('paper_revisions', 'papers.id', 'paper_revisions.paper_id')
       .join('binaries', 'paper_revisions.upload_id', 'binaries.id')
-      .first(['papers.id', 'papers.title', 'papers.date_submitted', 'papers.status', 'paper_revisions.revision_number', 'paper_revisions.abstract', 'paper_revisions.upload_id', 'binaries.name', 'binaries.mime_type', 'binaries.object'])
+      .first([
+          { id: 'papers.id' },
+          { title: 'papers.title' },
+          { dateOfSubmission: 'papers.date_submitted' },
+          { status: 'papers.status' },
+          { revNum: 'paper_revisions.revision_number' },
+          { abstract: 'paper_revisions.abstract' },
+          { docName:  'binaries.name' },
+          { docKey: 'paper_revisions.upload_id' },  // TODO: implement a randomized upload key instead of exposing the document id
+          ])
       .where('papers.id', paperId)
       .orderBy('paper_revisions.revision_number', 'desc')
   } catch (e) {
@@ -117,9 +126,70 @@ async function getPaper(paperId) {
   // console.log(paper)
 
   if (null === paper) {
-    return { result: ModelResult.NOT_FOUND, papers: null }
+    return { result: ModelResult.NOT_FOUND, paper: null }
   } else {
-    return { result: ModelResult.FOUND, papers: paper }
+    return { result: ModelResult.FOUND, paper: paper }
+  }
+}
+
+
+async function getPaperRevision(paperId, revNum) {
+  let paper = null
+  try {
+    paper = await knex('papers')
+      .join('paper_revisions', 'papers.id', 'paper_revisions.paper_id')
+      .join('binaries', 'paper_revisions.upload_id', 'binaries.id')
+      .first([
+          { id: 'papers.id' },
+          { title: 'papers.title' },
+          { dateOfSubmission: 'papers.date_submitted' },
+          { status: 'papers.status' },
+          { revNum: 'paper_revisions.revision_number' },
+          { abstract: 'paper_revisions.abstract' },
+          { docName:  'binaries.name' },
+          { docKey: 'paper_revisions.upload_id' },  // TODO: implement a randomized upload key instead of exposing the document id
+          ])
+      .where({
+          'papers.id': paperId,
+          'paper_revisions.revision_number': revNum,
+        })
+  } catch (e) {
+    return ModelResult.UNKNOWN_ERROR
+  }
+
+  // console.log(paper)
+
+  if (null === paper) {
+    return { result: ModelResult.NOT_FOUND, paper: null }
+  } else {
+    return { result: ModelResult.FOUND, paper: paper }
+  }
+}
+
+
+async function getPaperBlob(uploadKey) {
+  let paper = null
+  try {
+    paper = await knex('binaries')
+      .first([
+          { uploadKey: 'binaries.id' },
+          { docName: 'binaries.name' },
+          { mimeType: 'binaries.mime_type' },
+          { blob: 'binaries.object' },
+          ])
+      // TODO: Implement a randomized upload key instead of exposing the document id
+      //       The upload key should combine upload id and a randomised key to prevent key guessing.
+      .where('binaries.id', uploadKey)
+  } catch (e) {
+    return ModelResult.UNKNOWN_ERROR
+  }
+
+  // console.log(paper)
+
+  if (null === paper) {
+    return { result: ModelResult.NOT_FOUND, paper: null }
+  } else {
+    return { result: ModelResult.FOUND, paper: paper }
   }
 }
 
@@ -152,6 +222,8 @@ module.exports = {
   addPaper,
   addRevision,
   getPaper,
+  getPaperRevision,
+  getPaperBlob,
   getUserPapers,
   getAllPapers,
   setRevisionDocument,

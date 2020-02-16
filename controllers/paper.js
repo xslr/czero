@@ -52,9 +52,68 @@ async function addPaper(req, rsp) {
 async function getPaperById(req, rsp) {
   const pid = req.params.paperId
 
-  const { result, papers } = await PaperModel.getPaper(pid)
+  const { result, paper } = await PaperModel.getPaper(pid)
 
-  rsp.status(HttpStatus.HTTP_200_OK).send(papers)
+  switch(result) {
+    case ModelResult.FOUND:
+      rsp.status(HttpStatus.HTTP_200_OK).send(paper)
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send()
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send()
+      break;
+  }
+}
+
+
+async function getPaperByRevision(req, rsp) {
+  const pid = req.params.paperId
+  const rev = req.params.revId
+
+  const { result, paper } = await PaperModel.getPaperRevision(pid, rev)
+
+  switch(result) {
+    case ModelResult.FOUND:
+      rsp.status(HttpStatus.HTTP_200_OK).send(paper)
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send()
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send()
+      break;
+  }
+}
+
+
+async function getPaperBlob(req, rsp) {
+  const documentKey = req.params.documentKey
+
+  const { result, paper } = await PaperModel.getPaperBlob(documentKey)
+
+  // console.log(`da ${blob}`)
+
+  switch(result) {
+    case ModelResult.FOUND:
+      rsp.set('CZero-Doc-MIME', paper.mimeType)
+      rsp.set('CZero-Doc-Key', paper.uploadKey)
+      rsp.status(HttpStatus.HTTP_200_OK).send(paper.blob)
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send()
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send()
+      break;
+  }
 }
 
 
@@ -117,6 +176,8 @@ module.exports = {
   getAllUserPapers,
   addPaper,
   getPaperById,
+  getPaperBlob,
+  getPaperByRevision,
   deletePaper,
   alterPaper,
   addRevision,

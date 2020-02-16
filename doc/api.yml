@@ -353,7 +353,7 @@ paths:
 
   /paper:
     get:
-      summary: Get all papers created by current user (wip)
+      summary: Get all papers created by current user
       operationId: getAllPapers
       security:
         - AuthToken: []

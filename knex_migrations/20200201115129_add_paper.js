@@ -24,14 +24,15 @@ exports.up = function(knex) {
       t.binary('object').notNull()
     })
     .createTable('paper_revisions', function(t) {
-      t.integer('revision_number').unsigned().notNull()
+      t.increments('revision_id').primary()
+      t.integer('paper_revision').unsigned().notNull()
       t.string('abstract').notNull()
       t.integer('upload_id').unsigned()
       t.integer('paper_id').unsigned().notNull()
 
       t.foreign('upload_id').references('id').inTable('binaries').onDelete('CASCADE').onUpdate('CASCADE')
       t.foreign('paper_id').references('id').inTable('papers').onDelete('CASCADE').onUpdate('CASCADE')
-      t.primary(['revision_number', 'paper_id'])
+      t.unique(['paper_revision', 'paper_id'])
     })
 }
 

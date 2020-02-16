@@ -12,10 +12,20 @@ module.exports = (router) => {
         .patch(validator.validateLoginToken, controller.alterPaper)
         .post(validator.validateLoginToken, controller.addRevision)
 
-  router.route('/paper/:paperId/:revId')
+  router.route('/paper/:paperId/:revisionId')
         .get(validator.validateLoginToken, controller.getPaperByRevision)
-        .put(validator.validateLoginToken, controller.putRevisionDocument)
+        .put(validator.validateLoginToken, controller.putRevisionDocBlob)
 
-  router.route('/paper/:paperId/:revId/:documentKey')
+  router.route('/paper/:paperId/:revisionId/:documentKey')
         .get(validator.validateLoginToken, controller.getPaperBlob)
+
+  router.route('/paper/:paperId/reviewer')
+        .post(validator.validateLoginToken, validator.appendUserLogin, /*TODO: validateAssignReviewerRights,*/ controller.addReviewers)
+
+  router.route('/paper/:paperId/:revisionId/review')
+        .get(validator.validateLoginToken, /*TODO: validateRightToGetReviews,*/ controller.getReviews)
+        .post(validator.validateLoginToken, validator.appendUserLogin, /*TODO: validateRightToReview,*/ controller.addReview)
+
+  router.route('/paper/:paperId/decide')
+        .post(validator.validateLoginToken, /*TODO: validateRightToDecidePaper,*/ controller.onPaperDecision)
 }

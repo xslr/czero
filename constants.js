@@ -31,6 +31,7 @@ const HttpStatus = Object.freeze({
 })
 
 const ModelResult  = Object.freeze({
+  'NOT_IMPLEMENTED': -4,
   'NOT_FOUND': -3,
   'INVALID_PARAM': -2,
   'UNKNOWN_ERROR': -1,

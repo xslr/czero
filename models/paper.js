@@ -1,6 +1,7 @@
 const { knex } = require('./dbconnection')
 const { ResultCode } = require('../result_code')
 const { ModelResult } = require('../constants')
+const UserModel = require('./users')
 
 
 async function addPaper(p) {
@@ -16,7 +17,7 @@ function isPaperRevisionValid(paperRevision) {
 
 async function getLastRevision(paperId) {
   let res = await knex('paper_revisions')
-    .max('revision_number')
+    .max('paper_revision')
     .where({paperId: paperId})
 
   // console.log(`--> res = ${JSON.stringify(res)}`)
@@ -51,14 +52,14 @@ async function addRevision(paperRevision) {
 
   return knex('paper_revisions')
     .insert({
-      revision_number: nextRevision,
+      paper_revision: nextRevision,
       abstract: paperRevision.abstract,
       paperId: paperRevision.paperId,
-    }, 'revision_number')
+    }, 'paper_revision')
     .into('paper_revisions')
-    .then(revision_number => {
-      console.log(`Added revision number ${revision_number}`)
-      return { result: ModelResult.CREATED, revNum: revision_number }
+    .then(paper_revision => {
+      // console.log(`Added revision number ${paper_revision}`)
+      return { result: ModelResult.CREATED, revNum: paper_revision }
     })
 }
 
@@ -83,8 +84,8 @@ async function setRevisionDocument(paperId, revNum, name, type, blob) {
 
     const newUploadId = Number(uploadedIds[0])
     let updates = await trx('paper_revisions')
-      .where({paperId: paperId, revision_number: revNum})
-      .update({upload_id: newUploadId}, 'revision_number')
+      .where({paperId: paperId, paper_revision: revNum})
+      .update({upload_id: newUploadId}, 'paper_revision')
 
     if (1 === updates.length) {
       // console.log('--> 2')
@@ -112,13 +113,13 @@ async function getPaper(paperId) {
           { title: 'papers.title' },
           { dateOfSubmission: 'papers.date_submitted' },
           { status: 'papers.status' },
-          { revNum: 'paper_revisions.revision_number' },
+          { revNum: 'paper_revisions.paper_revision' },
           { abstract: 'paper_revisions.abstract' },
           { docName:  'binaries.name' },
           { docKey: 'paper_revisions.upload_id' },  // TODO: implement a randomized upload key instead of exposing the document id
           ])
       .where('papers.id', paperId)
-      .orderBy('paper_revisions.revision_number', 'desc')
+      .orderBy('paper_revisions.paper_revision', 'desc')
   } catch (e) {
     return ModelResult.UNKNOWN_ERROR
   }
@@ -144,14 +145,14 @@ async function getPaperRevision(paperId, revNum) {
           { title: 'papers.title' },
           { dateOfSubmission: 'papers.date_submitted' },
           { status: 'papers.status' },
-          { revNum: 'paper_revisions.revision_number' },
+          { revNum: 'paper_revisions.paper_revision' },
           { abstract: 'paper_revisions.abstract' },
           { docName:  'binaries.name' },
           { docKey: 'paper_revisions.upload_id' },  // TODO: implement a randomized upload key instead of exposing the document id
           ])
       .where({
           'papers.id': paperId,
-          'paper_revisions.revision_number': revNum,
+          'paper_revisions.paper_revision': revNum,
         })
   } catch (e) {
     return ModelResult.UNKNOWN_ERROR
@@ -218,6 +219,89 @@ async function getAllPapers() {
 }
 
 
+async function addReviewers(reviewers, paperId, requesterId) {
+  let insertedRows = []
+  let reviewerRows = []
+  for (let reviewerEmail of reviewers) {
+    const user = await UserModel.getUserByEmail(reviewerEmail)
+    reviewerRows.push({
+          reviewer_id: user.id,
+          paper_id: paperId,
+          requestor_id: requesterId,
+        })
+  }
+
+  // console.log(reviewerRows)
+
+  try {
+    insertedRows = await knex('reviewers')
+        .insert(reviewerRows, 'reviewer_id')
+  } catch (e) {
+    // console.log(e)
+    if (23503 === Number(e.code)) {
+      if (/^Key \(paper_id\).+is not present in table/.test(e.detail)) {
+        return { result: ModelResult.NOT_FOUND, error_detail: 'Paper not found.' }
+      } else if (/^Key \(reviewer_id\).+is not present in table/.test(e.detail)) {
+        return { result: ModelResult.NOT_FOUND, error_detail: 'Reviewer not found.' }
+      }
+    }
+    return { result: ModelResult.UNKNOWN_ERROR, error_detail: e }
+  }
+
+  // console.log(insertedRows)
+
+  if (insertedRows.length > 0) {
+    return { result: ModelResult.CREATED }
+  } else {
+    return { result: ModelResult.UNKNOWN_ERROR }
+  }
+}
+
+
+async function addReview(review, paperId, paperRevision, reviewerId) {
+  // do not check if reviewerId is allowed to review paperId, as that was already checked while routing by a middleware function
+  let insertedRows = []
+
+  try {
+    const revisionIdSubQuery = knex('paper_revisions')
+      .where({ paper_id: paperId, paper_revision: paperRevision })
+      .first('revision_id')
+
+    const insertionQuery = knex('reviews')
+      .insert({
+        review: review,
+        reviewer_id: reviewerId,
+        revision_id: revisionIdSubQuery,
+      }, 'reviews.id')
+
+    // console.log(insertionQuery.toSQL())
+
+    insertedRows = await insertionQuery
+  } catch (e) {
+    // console.log(e)
+    const errorCode = Number(e.code)
+    if (23503 === errorCode) {
+      if (/^Key \(reviewer_id\).+is not present in table/.test(e.detail)) {
+        return { result: ModelResult.NOT_FOUND, error_detail: 'Reviewer not found.' }
+      }
+    } else if (23502 === errorCode) {
+      if ('revision_id' == e.column) {
+        return { result: ModelResult.NOT_FOUND, error_detail: 'Paper or revision not found.' }
+      }
+    }
+    return { result: ModelResult.UNKNOWN_ERROR, error_detail: e }
+  }
+
+  // console.log(insertedRows)
+
+  if (1 === insertedRows.length) {
+    return { result: ModelResult.CREATED }
+  } else {
+    return { result: ModelResult.UNKNOWN_ERROR }
+  }
+}
+
+
 module.exports = {
   addPaper,
   addRevision,
@@ -227,4 +311,6 @@ module.exports = {
   getUserPapers,
   getAllPapers,
   setRevisionDocument,
+  addReviewers,
+  addReview,
 }

@@ -1,7 +1,5 @@
 const PaperModel = require('../models/paper');
-
 const { HttpStatus, ModelResult } = require('../constants')
-
 const { stage } = require('../config')
 
 
@@ -26,11 +24,22 @@ async function getAllUserPapers(req, rsp) {
 }
 
 
-function unpackRequest(body, keys) {
+function unpackRequestBody(body, keys) {
   var obj = {}
   keys.forEach(key => {
     // console.log(`body.${key}=${body[key]}`)
     obj[key] = body[key]
+  })
+
+  return obj
+}
+
+
+function unpackRequestHeader(req, keys) {
+  var obj = {}
+  keys.forEach(key => {
+    // console.log(`body.${key}=${body[key]}`)
+    obj[key] = req.get(key)
   })
 
   return obj
@@ -42,7 +51,7 @@ async function addPaper(req, rsp) {
 
   // console.log(`body=${JSON.stringify(req.body)}`)
 
-  const paper = unpackRequest(req.body, keys)
+  const paper = unpackRequestBody(req.body, keys)
   const result = await PaperModel.addPaper(paper)
 
   rsp.status(HttpStatus.HTTP_200_OK).send(JSON.stringify(result))
@@ -72,7 +81,7 @@ async function getPaperById(req, rsp) {
 
 async function getPaperByRevision(req, rsp) {
   const pid = req.params.paperId
-  const rev = req.params.revId
+  const rev = req.params.revisionId
 
   const { result, paper } = await PaperModel.getPaperRevision(pid, rev)
 
@@ -132,7 +141,7 @@ async function addRevision(req, rsp) {
 
   // console.log(`body=${JSON.stringify(req.body)}`)
 
-  const paperRevision = unpackRequest(req.body, keys)
+  const paperRevision = unpackRequestBody(req.body, keys)
   paperRevision.paperId = req.params.paperId
 
   const {result, revNum} = await PaperModel.addRevision(paperRevision)
@@ -147,14 +156,13 @@ async function addRevision(req, rsp) {
 }
 
 
-async function putRevisionDocument(req, rsp) {
-  console.log(`got revision document '${req.get('Document-Name')}' and length=${req.body.length}`)
+async function putRevisionDocBlob(req, rsp) {
   const docName = req.get('Document-Name')
   const docType = req.get('Content-Type')
   const docBlob = req.body
   const paperId = req.params.paperId
-  const revId = req.params.revId
-  let res = await PaperModel.setRevisionDocument(paperId, revId, docName, docType, docBlob)
+  const revisionId = req.params.revisionId
+  let res = await PaperModel.setRevisionDocument(paperId, revisionId, docName, docType, docBlob)
 
   switch (res) {
     case ModelResult.ALTERED:
@@ -172,6 +180,63 @@ async function putRevisionDocument(req, rsp) {
 }
 
 
+async function addReviewers(req, rsp) {
+  const paperId = req.params.paperId
+  const reviewers = req.body.reviewers
+  const requesterId = req.user.id
+
+  let { result, error_detail } = await PaperModel.addReviewers(reviewers, paperId, requesterId)
+
+  switch (result) {
+    case ModelResult.CREATED:
+      rsp.status(HttpStatus.HTTP_201_CREATED).send()
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send(error_detail)
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(error_detail)
+      break
+  }
+}
+
+
+async function getReviews(req, rsp) {
+}
+
+
+async function addReview(req, rsp) {
+  // console.log(req.user)
+
+  const paperId = req.params.paperId
+  const revisionId = req.params.revisionId
+  const review = req.body.review
+  const reviewerId = req.user.id
+
+  let { result, error_detail } = await PaperModel.addReview(review, paperId, revisionId, reviewerId)
+
+  switch (result) {
+    case ModelResult.CREATED:
+      rsp.status(HttpStatus.HTTP_201_CREATED).send()
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send(error_detail)
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(error_detail)
+      break
+  }
+}
+
+
+async function onPaperDecision(req, rsp) {
+}
+
+
 module.exports = {
   getAllUserPapers,
   addPaper,
@@ -181,5 +246,9 @@ module.exports = {
   deletePaper,
   alterPaper,
   addRevision,
-  putRevisionDocument,
+  putRevisionDocBlob,
+  addReviewers,
+  getReviews,
+  addReview,
+  onPaperDecision,
 }

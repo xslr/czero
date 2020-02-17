@@ -27,5 +27,5 @@ module.exports = (router) => {
         .post(validator.validateLoginToken, validator.appendUserLogin, /*TODO: validateAssignReviewerRights,*/ controller.addReviewers)
 
   router.route('/paper/:paperId/decide')
-        .post(validator.validateLoginToken, /*TODO: validateRightToDecidePaper,*/ controller.onPaperDecision)
+        .post(validator.validateLoginToken, validator.appendUserLogin, /*TODO: validateRightToDecidePaper,*/ controller.onPaperDecision)
 }

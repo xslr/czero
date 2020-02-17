@@ -256,6 +256,27 @@ async function addReview(req, rsp) {
 
 
 async function onPaperDecision(req, rsp) {
+  // console.log(req.user)
+
+  const paperId = req.params.paperId
+  const user = req.user
+  const decision = req.body.decision
+
+  let { result, error_detail } = await PaperModel.setPaperDecision(paperId, user.id, decision)
+
+  switch (result) {
+    case ModelResult.ALTERED:
+      rsp.status(HttpStatus.HTTP_200_OK).send()
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send(error_detail)
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(error_detail)
+      break
+  }
 }
 
 

@@ -338,6 +338,47 @@ async function addReview(review, paperId, paperRevision, reviewerId) {
 }
 
 
+async function setPaperDecision(paperId, userId, decision) {
+  // TODO: check decision value for validity
+  // TODO: check if paper decision can be changed (possibly operator only function)
+
+  let newStatus
+  if ('accept' === decision) {
+    newStatus = 'published'
+  } else if ('reject' === decision) {
+    newStatus === 'rejected'
+  } else {
+    return { result: ModelResult.INVALID_PARAM, error_detail: 'Decision is invalid. decision := accept | reject' }
+  }
+
+  const setDecisionQuery = knex('papers')
+    .where('id', paperId)
+    .update('status', newStatus, ['id'])
+
+  let updatedRows
+  try {
+    updatedRows = await setDecisionQuery
+  } catch (e) {
+    // console.log(e)
+    const errorCode = Number(e.code)
+    if (23503 === errorCode) {
+      if (/^Key \(id\).+is not present in table/.test(e.detail)) {
+        return { result: ModelResult.NOT_FOUND, error_detail: 'Paper not found.' }
+      }
+    }
+    return { result: ModelResult.UNKNOWN_ERROR, error_detail: e }
+  }
+
+  // console.log(updatedRows)
+
+  if (1 === updatedRows.length) {
+    return { result: ModelResult.ALTERED }
+  } else {
+    return { result: ModelResult.UNKNOWN_ERROR }
+  }
+}
+
+
 module.exports = {
   addPaper,
   addRevision,
@@ -350,4 +391,5 @@ module.exports = {
   addReviewers,
   getPaperReviews,
   addReview,
+  setPaperDecision,
 }

@@ -6,8 +6,29 @@ const ConferenceModel = require('./models/conference')
 const UserModel = require('./models/users')
 
 
+const AuthTokenHeaderField = "Authorization"
+const AuthTokenPrefix = "Bearer "
+
+
+function getTokenFromRequestHeader(req) {
+  const authHeaderVal = req.get(AuthTokenHeaderField)
+  var token = null
+
+  if (authHeaderVal) {
+    const parts = authHeaderVal.split(' ')
+    if (parts.length > 0 && AuthTokenPrefix === parts[0]) {
+      token = parts[1]
+    } else {
+      console.log('Auth header is improper.')
+    }
+  }
+
+  return token
+}
+
+
 function validateLoginToken(req, rsp, next) {
-  const token = req.get('CZero-Auth-Token')
+  const token = getTokenFromRequestHeader(req)
   if (token) {
     const options = {
       expiresIn: '2d',

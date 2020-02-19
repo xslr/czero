@@ -28,10 +28,10 @@ services:
       - ./pgdb_init:/docker-entrypoint-initdb.d
     networks:
       - confnet
-    # ports:
-      # - 5432:5432
-    expose:
-      - 5432
+    ports:
+      - 5432:5432
+    # expose:
+      # - 5432
 
   adminer:
     image: adminer

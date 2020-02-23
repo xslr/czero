@@ -18,6 +18,8 @@ build:
 test:
   stage: test
   script:
+    - apt-get update
+    - apt-get install python3
     - docker-compose version
     - docker-compose up &
     - sleep 10

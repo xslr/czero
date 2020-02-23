@@ -1,7 +1,6 @@
-image: docker
-
-services:
-  - docker:dind
+image:
+  name: docker/compose
+  entrypoint: [""]
 
 stages:
   - build
@@ -15,6 +14,9 @@ build:
 test:
   stage: test
   script:
+    - docker-compose version
+    - docker-compose up &
+    - sleep 10
     - echo "testing"
     - cd test
     - ./runtests.sh

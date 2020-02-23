@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 VENV_DIR=venv
 TEST_OUTPUT_DIR=out

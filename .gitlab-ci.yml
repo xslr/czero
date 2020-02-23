@@ -1,0 +1,15 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - echo "nothing to do in build stage"
+
+test:
+  stage: test
+  script:
+    - echo "testing"
+    - cd test
+    - ./runtests.sh

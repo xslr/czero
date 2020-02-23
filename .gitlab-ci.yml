@@ -1,6 +1,10 @@
 image:
   name: docker/compose
   entrypoint: [""]
+  
+services:
+  - docker:dind
+
 
 stages:
   - build

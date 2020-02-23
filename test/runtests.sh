@@ -9,7 +9,7 @@ activate () {
 
 bootstrap()
 {
-    python3 ./get_pip.py
+    python3 ./get-pip.py
     python3 -m pip install -U virtualenv
     python3 -m virtualenv $VENV_DIR
     echo $PWD

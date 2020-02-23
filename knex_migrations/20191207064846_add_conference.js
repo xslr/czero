@@ -20,7 +20,7 @@ exports.up = function(knex) {
       t.integer('user_id').unsigned().notNull()
       t.integer('conference_id').unsigned().notNull()
       t.enum('role',
-             ['program_chair', 'attendee', 'reviewer', 'author'],
+             ['program_chair', 'program_committee', 'attendee', 'reviewer', 'author'],
              { useNative: true, enumName: 'type_conference_role' })
        .notNull()
 

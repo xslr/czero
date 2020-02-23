@@ -1,10 +1,15 @@
 const { knex } = require('../models/dbconnection')
 const UserModel = require('./users')
-const { ConferenceStatus, ConferenceRole, enumAsString, ResultCode }  = require('../constants')
+const { ConferenceStatus, ConferenceRole, ModelResult, enumAsString }  = require('../constants')
 
 
 function isValidRole(role) {
   return Object.values(ConferenceRole).includes(role)
+}
+
+
+function isExclusiveRole(role) {
+  return role === ConferenceRole.program_chair;
 }
 
 
@@ -14,47 +19,47 @@ async function create(conf) {
 }
 
 
-async function assignRoleByUserId(confId, userId, role) {
-  if (undefined == confId) {
-    return ResultCode.ERR_INVALID_CONFERENCE
+async function assignRoleByUserId(cid, uid, role) {
+  if (undefined == cid || null == cid) {
+    return { result: ModelResult.INVALID_PARAM, error_detail: `conference id null` }
   }
-  if (undefined == userId) {
-    return ResultCode.ERR_UNKNOWN_USER_ID
+  if (undefined == uid || null == uid) {
+    return { result: ModelResult.INVALID_PARAM, error_detail: `user id null` }
   }
   if (!isValidRole(role)) {
-    return ResultCode.ERR_INVALID_ROLE
+    return { result: ModelResult.INVALID_PARAM, error_detail: `invalid conference role ${role}` }
   }
 
   return knex('conference_member')
     .insert({
-      userId: userId,
-      conferenceId: confId,
+      user_id: uid,
+      conferenceId: cid,
       role: enumAsString(ConferenceRole, role),
-    }, ['userId', 'conferenceId'])
+    }, ['user_id', 'conferenceId'])
     .then(res => {
       if (1 === res.length) {
-        return ResultCode.OK
+        return { result: ModelResult.OK }
       } else {
-        return ResultCode.ERR_UNKNOWN
+        return { result: ModelResult.UNKNOWN_ERROR }
       }
     })
     .catch(err => {
       console.error(`Error adding conference role: ${JSON.stringify(err)}`)
       if (undefined === err) {
-        return ResultCode.ERR_UNKNOWN
+        return { result: ModelResult.UNKNOWN_ERROR }
       } else if (23505 === Number(err.code)) {
-        return ResultCode.ERR_DUPLICATE_ENTRY
+        return { result: ModelResult.NO_CHANGE_REQUIRED }
       } else {
-        return ResultCode.ERR_UNKNOWN
+        return { result: ModelResult.UNKNOWN_ERROR }
       }
     })
 }
 
 
-async function assignRoleByEmail(confId, email, role) {
+async function assignRoleByEmail(cid, email, role) {
   const userId = await UserModel.getUserByEmail(email)
 
-  return await assignRoleByUserId(confId, userId, role)
+  return await assignRoleByUserId(cid, userId, role)
 }
 
 
@@ -106,6 +111,20 @@ async function conferenceStatusById(cid) {
 }
 
 
+async function addUserToProgramCommittee(cid, email) {
+  const { res, error_detail } = assignRoleByEmail(cid, email, ConferenceRole.program_committee)
+
+  return { res, error_detail }
+}
+
+
+async function setConferenceChair(cid, email) {
+  const { res, error_detail } = assignRoleByEmail(cid, email, ConferenceRole.program_chair)
+
+  return { res, error_detail }
+}
+
+
 module.exports = {
   create,
   assignRoleByEmail,
@@ -115,4 +134,6 @@ module.exports = {
   update,
   remove,
   conferenceStatusById,
+  setConferenceChair,
+  addUserToProgramCommittee,
 }

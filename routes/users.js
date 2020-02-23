@@ -1,22 +1,23 @@
 const controller = require('../controllers/users');
 const validator = require('../utils')
+const { routeDebugger } = require('./debug')
 
 module.exports = (router) => {
   router.route('/user')
-        .get(validator.validateLoginToken, controller.getUserByAuthToken)
-        .post(controller.add)
-        .patch(validator.validateLoginToken, controller.update)
+        .get(routeDebugger, validator.validateLoginToken, controller.getUserByAuthToken)
+        .post(routeDebugger, controller.add)
+        .patch(routeDebugger, validator.validateLoginToken, controller.update)
 
   router.route('/user/:userId')
-        .delete(validator.validateLoginToken, controller.deactivate)
-        .get(validator.validateLoginToken, controller.getUserById)
+        .delete(routeDebugger, validator.validateLoginToken, controller.deactivate)
+        .get(routeDebugger, validator.validateLoginToken, controller.getUserById)
 
   router.route('/user/:userId/reset_password')
-        .post(validator.validateLoginToken, controller.resetPassword)
+        .post(routeDebugger, validator.validateLoginToken, controller.resetPassword)
 
   router.route('/login')
-        .post(controller.login)
+        .post(routeDebugger, controller.login)
 
   router.route('/logout')
-        .post(validator.validateLoginToken, controller.logoutUser)
+        .post(routeDebugger, validator.validateLoginToken, controller.logoutUser)
 }

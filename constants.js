@@ -38,6 +38,7 @@ const ModelResult  = Object.freeze({
   'CREATED': 0,
   'ALTERED': 1,
   'FOUND': 2,
+  'NO_CHANGE_REQUIRED': 3,  // the request was already incorporated by a previous operation
 })
 
 const PaymentStatus = Object.freeze({
@@ -57,9 +58,10 @@ const ConferenceStatus = Object.freeze({
 
 const ConferenceRole = Object.freeze({
   'program_chair': 0,
-  'attendee': 1,
-  'reviewer': 2,
-  'author': 3,
+  'program_committee': 1,
+  'attendee': 2,
+  'reviewer': 3,
+  'author': 4,
 })
 
 function enumAsString(type, val) {

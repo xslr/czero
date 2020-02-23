@@ -350,6 +350,35 @@ paths:
         422:
           $ref: '#/components/responses/422'
 
+  /conference/{conferenceId}/pc:
+    post:
+      summary: Add user to program committe
+      operationId: addToProgramCommittee
+      description: Add user with given email to program committee of this conference. The user must already have an account.
+      security:
+        - AuthToken: []
+      requestBody:
+        required: true
+        description: 'A JSON object containing email of the user to be added to
+                      program committee of this conference.'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userEmail:
+                  type: string
+                  format: email
+      responses:
+        200:
+          $ref: '#/components/responses/200'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+
 
   /paper:
     get:

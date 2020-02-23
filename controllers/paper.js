@@ -1,6 +1,7 @@
 const PaperModel = require('../models/paper');
 const { HttpStatus, ModelResult } = require('../constants')
 const { stage } = require('../config')
+const { unpackRequestBody, unpackRequestHeader } = require('./utils')
 
 
 async function getAllUserPapers(req, rsp) {
@@ -21,28 +22,6 @@ async function getAllUserPapers(req, rsp) {
       rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send()
       break;
   }
-}
-
-
-function unpackRequestBody(body, keys) {
-  var obj = {}
-  keys.forEach(key => {
-    // console.log(`body.${key}=${body[key]}`)
-    obj[key] = body[key]
-  })
-
-  return obj
-}
-
-
-function unpackRequestHeader(req, keys) {
-  var obj = {}
-  keys.forEach(key => {
-    // console.log(`body.${key}=${body[key]}`)
-    obj[key] = req.get(key)
-  })
-
-  return obj
 }
 
 
@@ -146,7 +125,7 @@ async function addRevision(req, rsp) {
   const paperRevision = unpackRequestBody(req.body, keys)
   paperRevision.paperId = req.params.paperId
 
-  const {result, revNum} = await PaperModel.addRevision(paperRevision)
+  const { result, revNum } = await PaperModel.addRevision(paperRevision)
   if (ModelResult.CREATED === result) {
     rsp.status(HttpStatus.HTTP_201_CREATED).send({
       uploadUrl: stage.apiUrl + `/paper/${paperRevision.paperId}/${revNum}`,
@@ -164,7 +143,7 @@ async function putRevisionDocBlob(req, rsp) {
   const docBlob = req.body
   const paperId = req.params.paperId
   const revisionId = req.params.revisionId
-  let res = await PaperModel.setRevisionDocument(paperId, revisionId, docName, docType, docBlob)
+  const res = await PaperModel.setRevisionDocument(paperId, revisionId, docName, docType, docBlob)
 
   switch (res) {
     case ModelResult.ALTERED:
@@ -187,7 +166,7 @@ async function addReviewers(req, rsp) {
   const reviewers = req.body.reviewers
   const requesterId = req.user.id
 
-  let { result, error_detail } = await PaperModel.addReviewers(reviewers, paperId, requesterId)
+  const { result, error_detail } = await PaperModel.addReviewers(reviewers, paperId, requesterId)
 
   switch (result) {
     case ModelResult.CREATED:
@@ -237,7 +216,7 @@ async function addReview(req, rsp) {
   const review = req.body.review
   const reviewerId = req.user.id
 
-  let { result, error_detail } = await PaperModel.addReview(review, paperId, revisionId, reviewerId)
+  const { result, error_detail } = await PaperModel.addReview(review, paperId, revisionId, reviewerId)
 
   switch (result) {
     case ModelResult.CREATED:
@@ -262,7 +241,7 @@ async function onPaperDecision(req, rsp) {
   const user = req.user
   const decision = req.body.decision
 
-  let { result, error_detail } = await PaperModel.setPaperDecision(paperId, user.id, decision)
+  const { result, error_detail } = await PaperModel.setPaperDecision(paperId, user.id, decision)
 
   switch (result) {
     case ModelResult.ALTERED:

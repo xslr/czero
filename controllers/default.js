@@ -3,6 +3,6 @@ module.exports = {
 
     // TODO: perform sanity checks. execute first run if required.
 
-    res.status(201).send('OK')
+    res.status(200).send('nothing here')
   },
 }

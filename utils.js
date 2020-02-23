@@ -7,7 +7,7 @@ const UserModel = require('./models/users')
 
 
 const AuthTokenHeaderField = "Authorization"
-const AuthTokenPrefix = "Bearer "
+const AuthTokenPrefix = "Bearer"
 
 
 function getTokenFromRequestHeader(req) {

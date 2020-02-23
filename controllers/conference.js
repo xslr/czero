@@ -2,7 +2,8 @@ const ConferenceModel = require('../models/conference');
 const PaymentModel = require('../models/payment')
 
 const { mkResult } = require('../result_code')
-const { HttpStatus, PaymentStatus, ConferenceRole, ResultCode } = require('../constants')
+const { HttpStatus, ModelResult, PaymentStatus, ConferenceRole, ResultCode } = require('../constants')
+const { unpackRequestBody, unpackRequestHeader } = require('./utils')
 const crypto = require('crypto')
 
 const { stage } = require('../config')
@@ -260,7 +261,61 @@ async function paymentFail(req, rsp) {
   rsp.status(HttpStatus.HTTP_200_OK).send()
 }
 
+
+async function addUserToProgramCommittee(req, rsp) {
+  const bodyFields = ['email']
+
+  // console.log(`body=${JSON.stringify(req.body)}`)
+
+  const { email } = unpackRequestBody(req.body, bodyFields)
+  const { conferenceId } = req.params.conferenceId
+
+  const { result, error_detail } = ConferenceModel.addUserToProgramCommittee(conferenceId, email)
+
+  switch (result) {
+    case ModelResult.ALTERED:
+      rsp.status(HttpStatus.HTTP_200_OK).send()
+      break;
+
+    case ModelResult.NO_CHANGE_REQUIRED:
+      rsp.status(HttpStatus.HTTP_200_OK).send()
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send(error_detail)
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(error_detail)
+      break
+  }
+}
+
+
 async function setConferenceChair(req, rsp) {
+  const bodyFields = ['email']
+  const { email } = unpackRequestBody(req.body, bodyFields)
+  const { conferenceId } = req.params.conferenceId
+
+  const { result, error_detail } = ConferenceModel.setConferenceChair(conferenceId, email)
+
+  switch (result) {
+    case ModelResult.ALTERED:
+      rsp.status(HttpStatus.HTTP_200_OK).send()
+      break;
+
+    case ModelResult.NO_CHANGE_REQUIRED:
+      rsp.status(HttpStatus.HTTP_200_OK).send()
+      break;
+
+    case ModelResult.NOT_FOUND:
+      rsp.status(HttpStatus.HTTP_404_NOT_FOUND).send(error_detail)
+      break;
+
+    default:
+      rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(error_detail)
+      break
+  }
 }
 
 
@@ -277,4 +332,5 @@ module.exports = {
   paymentFail,
   setConferenceChair,
   alterConferenceById,
+  addUserToProgramCommittee,
 }

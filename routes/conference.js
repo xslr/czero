@@ -40,4 +40,8 @@ module.exports = (router) => {
   router.route('/conference/:conferenceId')
         .get(validator.validateLoginToken, controller.getConferenceById)
         .patch(validator.validateLoginToken, controller.alterConferenceById)
+
+  router.route('/conference/:conferenceId/pc')
+        .post(validator.validateLoginToken, controller.addUserToProgramCommittee)
+        // .delete(validator.validateLoginToken, controller.alterConferenceById)  // TODO: Remove user from program committee
 }

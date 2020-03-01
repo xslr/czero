@@ -1,8 +1,13 @@
 {
   "name": "czero",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
+  "description": "App server for conference management system",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.com:xslr/c-zero.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npm install && NODE_ENV=development npx nodemon --inspect index.js",
@@ -19,8 +24,9 @@
     "ejs": "^3.0.1",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^0.20.4",
+    "knex": "^0.20.10",
     "pg": "^7.14.0",
+    "redoc": "^2.0.0-rc.23",
     "redoc-cli": "^0.9.5",
     "validator": "^12.1.0"
   },

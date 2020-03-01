@@ -5,7 +5,9 @@ const users = require('./users')
 
 module.exports = (router) => {
   router.route('/')
-    .get(defaultRoute.default)
+    .get(defaultRoute.defaultAction)
+  router.route('/restart')
+  	.get(defaultRoute.restart)
 
   conference(router)
   paper(router)

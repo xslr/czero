@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npm install && NODE_ENV=development npx nodemon --inspect index.js",
+    "dev": "npm install && NODE_ENV=development npx forever -c 'nodemon --exitcrash' index.js",
     "prod": "NODE_ENV=production npx nodemon --inspect index.js"
   },
   "keywords": [],
@@ -23,6 +23,7 @@
     "dotenv": "^8.2.0",
     "ejs": "^3.0.1",
     "express": "^4.17.1",
+    "forever": "^2.0.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.20.10",
     "pg": "^7.14.0",

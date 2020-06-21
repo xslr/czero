@@ -1,11 +1,13 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/users');
-const validator = require('validator')
-const { knex, stage } = require('../models/dbconnection')
-const { mkResult } = require('../result_code')
-const { HttpStatus, ResultCode } = require('../constants')
+const validator = require('validator');
+const { knex, stage } = require('../models/dbconnection');
+const { mkResult } = require('../result_code');
+const { HttpStatus, ResultCode } = require('../constants');
 
+
+const authTokenLifespanDays = 30;
 
 function isAddUserRequestValid(fields) {
   let isValid = true
@@ -98,24 +100,38 @@ async function add(req, rsp) {
 function getAuthToken(email) {
   // Create a token
   const payload = { email: email }
-  const options = { expiresIn: '2d', issuer: stage.hostname }
+  const options = {
+    expiresIn: authTokenLifespanDays + 'd',
+    issuer: stage.hostname
+  }
   const token = jwt.sign(payload, process.env.JWT_SECRET, options)
 
   return token
 }
 
 
-function onLoginQuerySuccess(password, rsp, res) {
+async function onLoginQuerySuccess(password, rsp, res) {
   let httpStatus = HttpStatus.HTTP_401_UNAUTHORIZED
   let result = mkResult(ResultCode.ERR_INCORRECT_LOGIN, 'incorrect credentials')
 
   if (Array.isArray(res) && res.length > 0) {
     const compareRes = bcrypt.compareSync(password, res[0].password_hash)
     if (compareRes) {
-      httpStatus = HttpStatus.HTTP_200_OK
-      const token = getAuthToken(res[0].email)
+      httpStatus = HttpStatus.HTTP_200_OK;
+      // console.log(res[0]);
+      const token = getAuthToken(res[0].email);
+      const userData = await UserModel.getUserById(res[0].user_id)
+
       if (token) {
-        result = { authToken: token }
+        result = {
+          authToken: token,
+          token_expiry_days: authTokenLifespanDays,
+        }
+        if (userData) {
+          result.user = userData;
+        }
+      } else {
+        // FIXME: what happens if we could not generate a token
       }
     }
   }
@@ -123,7 +139,7 @@ function onLoginQuerySuccess(password, rsp, res) {
 }
 
 
-function onLoginQueryError(req, rsp, err) {
+async function onLoginQueryError(req, rsp, err) {
   rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR).send(JSON.stringify(err))
 }
 
@@ -139,7 +155,7 @@ async function login(req, rsp) {
     return
   }
 
-  return knex('email_logins')
+  return await knex('email_logins')
     .select('email', 'password_hash', 'user_id')
     .where({
       email: email,

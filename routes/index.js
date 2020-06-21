@@ -1,7 +1,7 @@
 const defaultRoute = require('../controllers/default')
 const conference = require('./conference')
 const paper = require('./paper')
-const users = require('./users')
+const users = require('./user')
 
 module.exports = (router) => {
   router.route('/')

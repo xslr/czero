@@ -3,15 +3,40 @@ const conference = require('./conference')
 const paper = require('./paper')
 const users = require('./user')
 
-module.exports = (router) => {
+const routes = [
+  conference,
+  paper,
+  users
+];
+
+const publicRoute = (router) => {
   router.route('/')
     .get(defaultRoute.defaultAction)
   router.route('/restart')
-  	.get(defaultRoute.restart)
+    .get(defaultRoute.restart)
 
-  conference(router)
-  paper(router)
-  users(router)
+  // console.log(routes[0])
+
+  for (let route of routes) {
+    if (route.public) {
+      route.public(router)
+    }
+  }
 
   return router
 }
+
+
+const restrictedRoute = (router) => {
+  for (let route of routes) {
+    if (route.restrict) {
+      route.restrict(router)
+    }
+  }
+
+  return router
+}
+
+
+module.exports.public = publicRoute;
+module.exports.restrict = restrictedRoute;

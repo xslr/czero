@@ -23,8 +23,7 @@ function isAddUserRequestValid(fields) {
 
 
 function onAddUserQuerySuccess(req, rsp, res) {
-  result = {}
-  status = HttpStatus.HTTP_201_CREATED
+  let result = {}
 
   if (1 == res.rowCount) {
     result = mkResult(ResultCode.OK_ACCOUNT_CREATED, 'User account created')
@@ -196,7 +195,7 @@ async function getUserById(req, rsp) {
 
 
 async function getUserByAuthToken(req, rsp) {
-  console.log(req.body.authToken)
+  // console.log(req.body.authToken)
 
   const email = req.decodedToken.email
   let user = await UserModel.getUserByEmail(email)
@@ -233,7 +232,7 @@ async function update(req, rsp) {
     return
   }
 
-  result = await UserModel.updateUser(userUpdate)
+  let result = await UserModel.updateUser(userUpdate)
   // console.log(`result of update = ${JSON.stringify(result)}`)
   if (!result.status) {
     rsp.status(HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR)

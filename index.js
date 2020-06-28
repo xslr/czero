@@ -4,6 +4,8 @@ const express = require('express')
 const logger = require('morgan')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const { validateLoginToken } = require('./utils')
+
 
 const app = express()
 const router = express.Router()
@@ -31,7 +33,11 @@ if (environment !== 'production') {
 
 preLaunchCheck()
   .then(res => {
-    app.use(stage.apiSuffix, routes(router))
+    routes.public(router)
+    router.use(validateLoginToken)
+    routes.restrict(router)
+
+    app.use(stage.apiSuffix, router)
 
     app.listen(`${stage.port}`, () => {
       console.log(`Server now listening at ${stage.ip}:${stage.port}`)

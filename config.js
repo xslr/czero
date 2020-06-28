@@ -4,7 +4,7 @@ const development = {
   saltingRounds: 10,
 
   hostname: process.env.APPSERVER_HOSTNAME || 'http://localhost',  // TODO: set to 'https://rnm.sg' on prod
-  apiSuffix: process.env.api_suffix || '/api/v0',  // TODO: set to 'https://rnm.sg' on prod
+  apiSuffix: process.env.api_suffix || '/api/v0',
 
   // database access
   db: {
@@ -29,8 +29,8 @@ const production = {
   saltingRounds: 20,
 
   // TODO: update to prod keys
-  merchantKey: 'B3EAvK71',
-  merchantSalt: 'dKemnHwDbX',
+  merchantKey: 'FIXME',
+  merchantSalt: 'FIXME',
 }
 
 const configs = {

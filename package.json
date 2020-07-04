@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "description": "App server for conference management system",
-  "main": "index.js",
+  "main": "server.js",
   "repository": {
     "type": "git",
     "url": "git@gitlab.com:xslr/c-zero.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npm install && NODE_ENV=development npx forever -c 'nodemon --exitcrash' index.js",
-    "prod": "NODE_ENV=production npx nodemon --inspect index.js"
+    "test": "jest",
+    "dev": "npm install && NODE_ENV=development npx forever -c 'nodemon --exitcrash' server.js",
+    "prod": "NODE_ENV=production npx nodemon --inspect server.js"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +34,7 @@
   "devDependencies": {
     "cross-env": "^6.0.3",
     "eslint": "^6.7.1",
+    "jest": "^26.1.0",
     "morgan": "^1.9.1",
     "nodemon": "^2.0.1"
   }

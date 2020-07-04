@@ -1,5 +1,3 @@
-require('dotenv').config()
-
 const express = require('express')
 const logger = require('morgan')
 const bodyParser = require('body-parser')
@@ -11,7 +9,6 @@ const app = express()
 const router = express.Router()
 const routes = require('./routes/index.js')
 const { stage, environment } = require('./config.js')
-const { preLaunchCheck } = require('./utils.js')
 
 // TODO: enable cors for selected domains only before going live
 app.use(cors())
@@ -31,20 +28,10 @@ if (environment !== 'production') {
   app.use(logger('dev'))
 }
 
-preLaunchCheck()
-  .then(res => {
-    routes.public(router)
-    router.use(validateLoginToken)
-    routes.restrict(router)
+routes.public(router)
+router.use(validateLoginToken)
+routes.restrict(router)
 
-    app.use(stage.apiSuffix, router)
+app.use(stage.apiSuffix, router)
 
-    app.listen(`${stage.port}`, () => {
-      console.log(`Server now listening at ${stage.ip}:${stage.port}`)
-    })
-
-    module.exports = app
-  })
-  .catch(err => {
-    console.error(err)
-  })
+module.exports = app

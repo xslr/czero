@@ -22,8 +22,14 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: install dependencies for backend
-      run: npm install
+    - name: start backend server
+      run: docker-compose up
+
+    - name: install jest to execute backend tests
+      run: npm install jest
+
+    - name: wait for server to come up
+      run: timeout 10 until curl -sf http://localhost:3000/api/v0 > /dev/null; do; echo not yet; sleep 0.5; done
 
     # Runs a single command using the runners shell
     - name: test backend standalone

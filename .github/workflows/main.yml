@@ -30,7 +30,7 @@ jobs:
     - name: start backend server
       run: docker-compose up --detach
 
-    - run: npm install
+    - run: npm ci
 
     # - name: install jest to execute backend tests
     #   run: npm install jest

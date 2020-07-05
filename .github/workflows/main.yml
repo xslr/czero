@@ -25,12 +25,12 @@ jobs:
     - name: start backend server
       run: docker-compose up -d
 
-    - name: install jest to execute backend tests
-      run: npm install jest
+    # - name: install jest to execute backend tests
+    #   run: npm install jest
 
     - name: wait for server to come up
       run: timeout 300 until curl -sf http://localhost:3000/api/v0 > /dev/null; do; echo not yet; sleep 0.5; done
 
     # Runs a single command using the runners shell
     - name: test backend standalone
-      run: npm run test
+      run: npx jest

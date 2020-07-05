@@ -34,11 +34,13 @@ const production = {
 }
 
 const configs = {
-  development,
-  production
+  devel: development,
+  prod: production,
+  test: development,
 }
 
-const environment = process.env.NODE_ENV || 'development'  // development or production
+const environment = process.env.NODE_ENV || 'devel'  // development or production
+
 let stage = configs[environment]
 stage.apiUrl = stage.hostname + stage.apiSuffix
 

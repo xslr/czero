@@ -10,8 +10,8 @@
   },
   "scripts": {
     "test": "jest",
-    "dev": "npm install && NODE_ENV=development npx forever -c 'nodemon --exitcrash' server.js",
-    "prod": "NODE_ENV=production npx nodemon --inspect server.js"
+    "dev": "npm install && npx forever -c 'nodemon --exitcrash' server.js",
+    "prod": "npx nodemon --inspect server.js"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +29,8 @@
     "pg": "^7.14.0",
     "redoc": "^2.0.0-rc.23",
     "redoc-cli": "^0.9.5",
+    "superagent": "^5.3.1",
+    "supertest": "^4.0.2",
     "validator": "^12.1.0"
   },
   "devDependencies": {

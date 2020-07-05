@@ -1,6 +1,5 @@
 node_modules
 conf0.code-workspace
-package-lock.json
 .vscode/launch.json
 test/venv
 test/out

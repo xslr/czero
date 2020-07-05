@@ -23,13 +23,13 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: start backend server
-      run: docker-compose up -d
+      run: docker-compose up --detach
 
     # - name: install jest to execute backend tests
     #   run: npm install jest
 
     - name: wait for server to come up
-      run: timeout 300 until curl -sf http://localhost:3000/api/v0 > /dev/null; do; echo not yet; sleep 0.5; done
+      run: timeout 120 ./ci/wait_for_server.sh
 
     # Runs a single command using the runners shell
     - name: test backend standalone

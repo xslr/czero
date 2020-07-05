@@ -26,11 +26,11 @@ jobs:
         node-version: '12'
         check-latest: true
 
+    - run: npm ci
+
     # TODO: we need just a database with the seed data, not the entire docker-compose'ition
     - name: start backend server
       run: docker-compose up --detach
-
-    - run: npm ci
 
     # - name: install jest to execute backend tests
     #   run: npm install jest

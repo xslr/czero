@@ -21,16 +21,22 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '12'
+        check-latest: true
 
+    # TODO: we need just a database with the seed data, not the entire docker-compose'ition
     - name: start backend server
       run: docker-compose up --detach
+
+    - run: npm install
 
     # - name: install jest to execute backend tests
     #   run: npm install jest
 
     - name: wait for server to come up
-      run: timeout 120 ./ci/wait_for_server.sh
+      run: timeout 180 ./ci/wait_for_server.sh
 
     # Runs a single command using the runners shell
-    - name: test backend standalone
-      run: npx jest
+    - run: npm test

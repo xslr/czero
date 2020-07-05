@@ -31,6 +31,10 @@ it('login user', async done => {
   expect(response.body.authToken).not.toBeNull();
 
   done()
+})
 
-  knex.destroy()
+
+afterAll(async(done) => {
+  await knex.destroy()
+  done()
 })

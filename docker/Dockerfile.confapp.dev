@@ -4,10 +4,6 @@ FROM node:lts-alpine
 RUN mkdir -p /home/node/app
 WORKDIR /home/node/app
 
-# Install dependencies
-RUN apk add --update \
-  build-base \
-  python3
 COPY package.json .
 RUN npm install
 

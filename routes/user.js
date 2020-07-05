@@ -6,10 +6,6 @@ const publicRoute = (router) => {
   router.route('/user')
         .post(routeDebugger, controller.add)
 
-  router.route('/user/:userId')
-
-  router.route('/user/:userId/reset_password')
-
   router.route('/login')
         .post(routeDebugger, controller.login)
 

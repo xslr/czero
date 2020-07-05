@@ -103,7 +103,7 @@ function getAuthToken(email) {
     expiresIn: authTokenLifespanDays + 'd',
     issuer: stage.hostname
   }
-  const token = jwt.sign(payload, process.env.JWT_SECRET, options)
+  const token = jwt.sign(payload, stage.jwtSecret, options)
 
   return token
 }

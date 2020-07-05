@@ -1,6 +1,9 @@
 const development = {
   port: process.env.APPSERVER_PORT || 3000,
   ip: process.env.APPSERVER_IP || '127.0.0.1',
+
+  // auth
+  jwtSecret: 'addjsonwebtokensecretherelikeQuiscustodietipsoscustodes',
   saltingRounds: 10,
 
   hostname: process.env.APPSERVER_HOSTNAME || 'http://localhost',  // TODO: set to 'https://rnm.sg' on prod
@@ -26,6 +29,9 @@ const development = {
 const production = {
   port: process.env.PORT || 3010,
   ip: process.env.SERVER_IP || '127.0.0.1',
+
+  // auth
+  jwtSecret: 'addjsonwebtokensecretherelikeQuiscustodietipsoscustodes',
   saltingRounds: 20,
 
   // TODO: update to prod keys

@@ -96,26 +96,26 @@ Modify user data WILLFAIL
 
  */
 
-it('modify user data WILLFAIL', async done => {
-  let userData = {
-    firstName: 'Copy',
-    lastName: 'Cat',
-    email: 'Leroy@microsoft.com',
-    password: 'password1',
-  };
+// it('modify user data WILLFAIL', async done => {
+//   let userData = {
+//     firstName: 'Copy',
+//     lastName: 'Cat',
+//     email: 'Leroy@microsoft.com',
+//     password: 'password1',
+//   };
 
-  const response = await request.post(epRegister)
-      .send(userData);
+//   const response = await request.post(epRegister)
+//       .send(userData);
 
-  // console.log(response)
+//   // console.log(response)
 
-  expect(response.type).toBe('application/json');
-  expect(response.status).toBe(422)
-  expect(response.body.resultCode).not.toBeNull();
-  expect(response.body.reason).not.toBeNull();
+//   expect(response.type).toBe('application/json');
+//   expect(response.status).toBe(422)
+//   expect(response.body.resultCode).not.toBeNull();
+//   expect(response.body.reason).not.toBeNull();
 
-  done()
-})
+//   done()
+// })
 
 afterAll(async(done) => {
   await knex.destroy()

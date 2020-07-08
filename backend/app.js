@@ -8,6 +8,7 @@ const { validateLoginToken } = require('./utils')
 const app = express()
 const router = express.Router()
 const routes = require('./routes/index.js')
+// const { routeDebugger } = require('./routes/debug')
 const { stage, environment } = require('./config.js')
 
 // TODO: enable cors for selected domains only before going live
@@ -28,6 +29,7 @@ if (environment !== 'production') {
   app.use(logger('dev'))
 }
 
+// router.use(routeDebugger)
 routes.public(router)
 router.use(validateLoginToken)
 routes.restrict(router)

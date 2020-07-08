@@ -1,13 +1,12 @@
 const controller = require('../controllers/users');
-// const validator = require('../utils')
-const { routeDebugger } = require('./debug')
+
 
 const publicRoute = (router) => {
   router.route('/user')
-        .post(routeDebugger, controller.add)
+        .post(controller.add)
 
   router.route('/login')
-        .post(routeDebugger, controller.login)
+        .post(controller.login)
 
   router.route('/logout')
 }
@@ -15,18 +14,18 @@ const publicRoute = (router) => {
 
 const restrictedRoute = (router) => {
   router.route('/user')
-        .get(routeDebugger, controller.getUserByAuthToken)
-        .patch(routeDebugger, controller.update)
+        .get(controller.getUserByAuthToken)
+        .patch(controller.update)
 
   router.route('/user/:userId')
-        .delete(routeDebugger, controller.deactivate)
-        .get(routeDebugger, controller.getUserById)
+        .delete(controller.deactivate)
+        .get(controller.getUserById)
 
   router.route('/user/:userId/reset_password')
-        .post(routeDebugger, controller.resetPassword)
+        .post(controller.resetPassword)
 
   router.route('/logout')
-        .post(routeDebugger, controller.logoutUser)
+        .post(controller.logoutUser)
 }
 
 

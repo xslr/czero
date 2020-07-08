@@ -73,12 +73,9 @@ async function add(req, rsp) {
             user_id: id[0],
           })
           .into('email_logins')
-          .catch(err => {
-            console.error(`Error inserting into login table: ${err}`)
-            throw err
-          })
         })
         .catch(err => {
+          // TODO: log to logger backend. Not to console
           console.error(`Error while inserting: ${err}`)
           throw err
         })

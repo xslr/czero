@@ -7,6 +7,22 @@ const apiSuffix = '/api/v0';
 const epLogin = apiSuffix + '/' + 'login';
 const epRegister = apiSuffix + '/' + 'user';
 const epModifyUser = apiSuffix + '/' + 'user';
+const epGetUser = apiSuffix + '/' + 'user';
+
+
+async function doLogin(name, pass) {
+  const response = await request.post(epLogin)
+      .send({
+        email: name,
+        password: pass,
+      });
+
+  expect(response.type).toBe('application/json');
+  expect(response.status).toBe(200)
+  expect(response.body.authToken).not.toBeNull();
+
+  return response.body.authToken;
+}
 
 
 beforeEach(async () => {
@@ -39,6 +55,25 @@ it('login user', async done => {
 
   done()
 })
+
+
+it('get user data', async done => {
+  let token = await doLogin('Jenkins@microsoft.com', 'password1');
+
+  let body = {
+  };
+
+  const response = await request.get(epModifyUser)
+      .set('Authorization', 'Bearer ' + token)
+      .send(body);
+
+  expect(response.type).toBe('application/json');
+  expect(response.status).toBe(200)
+  expect(response.body.authToken).toBeUndefined();
+
+  done()
+})
+
 
 it('register new user', async done => {
   let userData = {
@@ -82,40 +117,29 @@ it('register existing user', async done => {
 })
 
 
-/*
-Modify user data WILLFAIL
-    ${token}=  login should succeed  email=Alline@example.com  password=password1
+it('modify user data', async done => {
+  let token = await doLogin('Jenkins@microsoft.com', 'password1');
 
-    &{userUpdate}=  create dictionary  firstName=Alline  lastName=Terminator
-    &{data}=  create dictionary  userUpdate=${userUpdate}
-    &{headers}=  create dictionary  ${auth_hdr_field}=Bearer ${token}
-    ${resp}  patch request  app_server  ${app_suffix}/${ep_modify_user}  json=${data}  headers=${headers}
-    log  ${resp.status_code}
-    log  ${resp.content}
-    should be equal as integers  ${resp.status_code}  200
+  let body = {
+    userUpdate: {
+      email: 'Jenkins@microsoft.com',
+      firstName: 'Alline',
+      lastName: 'Terminator',
+    }
+  };
 
- */
+  const response = await request.patch(epModifyUser)
+      .set('Authorization', 'Bearer ' + token)
+      .send(body);
 
-// it('modify user data WILLFAIL', async done => {
-//   let userData = {
-//     firstName: 'Copy',
-//     lastName: 'Cat',
-//     email: 'Leroy@microsoft.com',
-//     password: 'password1',
-//   };
+  console.log(response.body)
 
-//   const response = await request.post(epRegister)
-//       .send(userData);
+  expect(response.type).toBe('application/json');
+  expect(response.status).toBe(200)
+  expect(response.body.user).not.toBeUndefined()
 
-//   // console.log(response)
-
-//   expect(response.type).toBe('application/json');
-//   expect(response.status).toBe(422)
-//   expect(response.body.resultCode).not.toBeNull();
-//   expect(response.body.reason).not.toBeNull();
-
-//   done()
-// })
+  done()
+})
 
 afterAll(async(done) => {
   await knex.destroy()

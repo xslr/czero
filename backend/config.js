@@ -31,7 +31,7 @@ const production = {
   ip: process.env.SERVER_IP || '127.0.0.1',
 
   // auth
-  jwtSecret: 'addjsonwebtokensecretherelikeQuiscustodietipsoscustodes',
+  // jwtSecret: '',
   saltingRounds: 20,
 
   // TODO: update to prod keys

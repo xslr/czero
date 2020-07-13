@@ -36,7 +36,7 @@ function validateLoginToken(req, rsp, next) {
     }
     try {
       // verify makes sure that the token hasn't expired and has been issued by us
-      const result = jwt.verify(token, process.env.JWT_SECRET, options)
+      const result = jwt.verify(token, stage.jwtSecret, options)
 
       // Let's pass back the decoded token to the request object
       req.decodedToken = result

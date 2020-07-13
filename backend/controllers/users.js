@@ -201,7 +201,7 @@ async function getUserByAuthToken(req, rsp) {
        .send(mkResult(ResultCode.ERR_UNKNOWN_USER_EMAIL, 'A user with specified email was not found.'))
   } else {
     rsp.status(HttpStatus.HTTP_200_OK)
-       .send(user)
+       .send({user: user})
   }
 }
 
@@ -214,13 +214,7 @@ async function update(req, rsp) {
   }
 
   const tokenEmail = req.decodedToken.email
-  const userUpdateString = req.body.userUpdate
-  if (!userUpdateString) {
-    rsp.status(HttpStatus.HTTP_400_BAD_REQUEST)
-      .send(mkResult(ResultCode.ERR_MISSING_DATA, 'userUpdate was not provided.'))
-    return
-  }
-  const userUpdate = JSON.parse(userUpdateString)
+  const userUpdate = req.body.userUpdate
   if (tokenEmail != userUpdate.email) {
     rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED)
       .send(mkResult(ResultCode.ERR_INCORRECT_LOGIN,

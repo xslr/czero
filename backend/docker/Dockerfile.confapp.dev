@@ -5,8 +5,12 @@ RUN mkdir -p /home/node/app
 WORKDIR /home/node/app
 
 COPY package.json .
+
+# required to run npm ci
 COPY package-lock.json .
 RUN ls
+
+# install node deps, faster than npm i
 RUN npm ci
 
 # Bundle app source
@@ -14,4 +18,4 @@ COPY . .
 
 # Exports
 EXPOSE 3000
-# CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev"]

@@ -5,6 +5,8 @@ RUN mkdir -p /home/node/app
 WORKDIR /home/node/app
 
 COPY package.json .
+COPY package-lock.json .
+RUN ls
 RUN npm ci
 
 # Bundle app source
@@ -12,4 +14,4 @@ COPY . .
 
 # Exports
 EXPOSE 3000
-CMD ["npm", "run", "dev"]
+# CMD ["npm", "run", "dev"]

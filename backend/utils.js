@@ -43,12 +43,12 @@ function validateLoginToken(req, rsp, next) {
       // We call next to pass execution to the subsequent middleware
       next();
     } catch (err) {
-      // an auth token was provided but it was invalid -> HTTP 403
+      // an auth token was provided but it was invalid -> HTTP 401
       if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
         const result = {
           error: err.message
         }
-        rsp.status(HttpStatus.HTTP_403_FORBIDDEN).send(result);
+        rsp.status(HttpStatus.HTTP_401_UNAUTHORIZED).send(result);
       } else {
         console.log(JSON.stringify(err))
         // Throw an error in case of unhandled errors

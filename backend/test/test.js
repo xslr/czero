@@ -63,7 +63,7 @@ it('get user data', async done => {
   let body = {
   };
 
-  const response = await request.get(epModifyUser)
+  const response = await request.get(epGetUser)
       .set('Authorization', 'Bearer ' + token)
       .send(body);
 

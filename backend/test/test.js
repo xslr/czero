@@ -8,6 +8,7 @@ const epLogin = apiSuffix + '/' + 'login';
 const epRegister = apiSuffix + '/' + 'user';
 const epModifyUser = apiSuffix + '/' + 'user';
 const epGetUser = apiSuffix + '/' + 'user';
+const epGetUserPaper = apiSuffix + '/paper';
 
 
 async function doLogin(name, pass) {
@@ -140,6 +141,7 @@ it('modify user data', async done => {
 
   done()
 })
+
 
 afterAll(async(done) => {
   await knex.destroy()

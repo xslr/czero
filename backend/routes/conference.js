@@ -2,6 +2,12 @@ const controller = require('../controllers/conference');
 const validator = require('../utils')
 
 
+// conference rights:
+//  - operator
+//  - program chair
+//  - attendee
+//  - track chair
+
 const publicRoute = (router) => {
   router.route('/conference')
         .get(controller.getAvailableConference)
@@ -53,4 +59,4 @@ const restrictedRoute = (router) => {
 
 
 module.exports.public = publicRoute
-module.exports.restrict = restrictedRoute
+module.exports.restricted = restrictedRoute

@@ -29,8 +29,8 @@ const publicRoute = (router) => {
 
 const restrictedRoute = (router) => {
   for (let route of routes) {
-    if (route.restrict) {
-      route.restrict(router)
+    if (route.restricted) {
+      route.restricted(router)
     }
   }
 
@@ -39,4 +39,4 @@ const restrictedRoute = (router) => {
 
 
 module.exports.public = publicRoute;
-module.exports.restrict = restrictedRoute;
+module.exports.restricted = restrictedRoute;

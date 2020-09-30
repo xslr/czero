@@ -30,4 +30,4 @@ const restrictedRoute = (router) => {
 
 
 module.exports.public = publicRoute
-module.exports.restrict = restrictedRoute
+module.exports.restricted = restrictedRoute

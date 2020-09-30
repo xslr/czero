@@ -32,7 +32,7 @@ if (environment !== 'production') {
 // router.use(routeDebugger)
 routes.public(router)
 router.use(validateLoginToken)
-routes.restrict(router)
+routes.restricted(router)
 
 app.use(stage.apiSuffix, router)
 

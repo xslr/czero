@@ -112,20 +112,6 @@ async function updateUser(userUpdate) {
 }
 
 
-async function isUserOperator(uid) {
-  if (!uid) {
-    return false
-  }
-
-  return knex('tblOperator')
-    .join('email_logins', 'users.id', 'email_logins.user_id')
-    .select(userInfoColumns)
-    // TODO make a view for userInfo instead of explicitly specifying the columns
-    .where('email', email)
-
-}
-
-
 module.exports = {
   getUserById,
   getUserByEmail,

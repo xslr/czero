@@ -1,16 +1,24 @@
 const controller = require('../controllers/paper');
 const validator = require('../utils')
+const auth = require('../src/authorization')
 
 
 const publicRoute = (router) => {
   /* no public route */
 }
 
+// paper rights:
+//  - author
+//  - reviewer
+//  - track_chair
+//  - program_chair
 
 const restrictedRoute = (router) => {
   router.route('/paper')
+        // only for testing operator role checks
+        //.get(validator.appendUserLogin, auth.role.operator, controller.getAllUserPapers)
         .get(validator.appendUserLogin, controller.getAllUserPapers)
-        .post(controller.addPaper)
+        .post(auth.restrict.uploadPaper, controller.addPaper)
 
   router.route('/paper/:paperId')
         .get(controller.getPaperById)
@@ -38,4 +46,4 @@ const restrictedRoute = (router) => {
 
 
 module.exports.public = publicRoute;
-module.exports.restrict = restrictedRoute;
+module.exports.restricted = restrictedRoute;
